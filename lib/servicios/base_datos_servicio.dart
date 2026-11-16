@@ -3,7 +3,6 @@
 // ==========================================
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -127,211 +126,17 @@ class BaseDatosServicio {
         notas TEXT
       )
     ''');
-
-    // Carga de datos iniciales demo
-    await _insertarDatosIniciales(db);
   }
 
-  // Semilla de datos iniciales (Seed)
-  Future<void> _insertarDatosIniciales(Database db) async {
-    // 1. Metas iniciales
-    final metasIniciales = [
-      MetaModelo(
-        id: 'meta-1',
-        titulo: 'Laptop de Trabajo',
-        montoObjetivo: 24000.00,
-        montoAhorrado: 15500.00,
-        fechaObjetivo: DateTime.now().add(const Duration(days: 90)),
-        categoria: 'Tecnología',
-        icono: Icons.devices_rounded,
-        color: const Color(0xFF1976D2),
-      ),
-      MetaModelo(
-        id: 'meta-2',
-        titulo: 'Vacaciones a la Playa',
-        montoObjetivo: 14000.00,
-        montoAhorrado: 7000.00,
-        fechaObjetivo: DateTime.now().add(const Duration(days: 120)),
-        categoria: 'Viajes',
-        icono: Icons.flight_takeoff_rounded,
-        color: const Color(0xFF0097A7),
-      ),
-      MetaModelo(
-        id: 'meta-3',
-        titulo: 'Fondo de Emergencia',
-        montoObjetivo: 20000.00,
-        montoAhorrado: 20000.00,
-        categoria: 'Fondo de Emergencia',
-        icono: Icons.shield_rounded,
-        color: const Color(0xFF2E7D32),
-      ),
-    ];
-
-    for (final meta in metasIniciales) {
-      await db.insert('metas', meta.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
-    }
-
-    // 2. Tarjetas y deudas iniciales
-    final deudasIniciales = [
-      DeudaModelo(
-        id: 'tarjeta-nu',
-        tituloOEntidad: 'Nu México',
-        tipoDeuda: TipoDeuda.tarjetaCredito,
-        montoTotal: 15000.00,
-        limiteAjustado: 8000.00,
-        montoPendiente: 3200.00,
-        diaCorte: 12,
-        colorTarjeta: const Color(0xFF820AD1),
-        fechaLimitePago: DateTime.now().add(const Duration(days: 10)),
-        historialPartidas: [
-          PartidaDeudaModelo(
-            id: 'nu-1',
-            concepto: 'Compra en Amazon',
-            monto: 2200.00,
-            fecha: DateTime.now().subtract(const Duration(days: 8)),
-            esAbono: false,
-          ),
-          PartidaDeudaModelo(
-            id: 'nu-2',
-            concepto: 'Cena Restaurante',
-            monto: 1000.00,
-            fecha: DateTime.now().subtract(const Duration(days: 5)),
-            esAbono: false,
-          ),
-          PartidaDeudaModelo(
-            id: 'nu-3',
-            concepto: 'Pago mensual para no generar intereses',
-            monto: 1500.00,
-            fecha: DateTime.now().subtract(const Duration(days: 2)),
-            esAbono: true,
-          ),
-        ],
-      ),
-      DeudaModelo(
-        id: 'tarjeta-didi',
-        tituloOEntidad: 'Didi Card',
-        tipoDeuda: TipoDeuda.tarjetaCredito,
-        montoTotal: 8000.00,
-        limiteAjustado: 4000.00,
-        montoPendiente: 1450.00,
-        diaCorte: 24,
-        colorTarjeta: const Color(0xFFFF7700),
-        fechaLimitePago: DateTime.now().add(const Duration(days: 15)),
-        historialPartidas: [
-          PartidaDeudaModelo(
-            id: 'didi-1',
-            concepto: 'Gasolina',
-            monto: 850.00,
-            fecha: DateTime.now().subtract(const Duration(days: 4)),
-            esAbono: false,
-          ),
-          PartidaDeudaModelo(
-            id: 'didi-2',
-            concepto: 'Suscripciones streaming',
-            monto: 600.00,
-            fecha: DateTime.now().subtract(const Duration(days: 2)),
-            esAbono: false,
-          ),
-        ],
-      ),
-      DeudaModelo(
-        id: 'tarjeta-mp',
-        tituloOEntidad: 'Mercado Pago',
-        tipoDeuda: TipoDeuda.tarjetaCredito,
-        montoTotal: 10000.00,
-        montoPendiente: 890.00,
-        diaCorte: 5,
-        colorTarjeta: const Color(0xFF009EE3),
-        fechaLimitePago: DateTime.now().add(const Duration(days: 5)),
-        historialPartidas: [
-          PartidaDeudaModelo(
-            id: 'mp-1',
-            concepto: 'Compra Mercado Libre',
-            monto: 890.00,
-            fecha: DateTime.now().subtract(const Duration(days: 1)),
-            esAbono: false,
-          ),
-        ],
-      ),
-      DeudaModelo(
-        id: 'deuda-1',
-        tituloOEntidad: 'Juan Pérez',
-        tipoDeuda: TipoDeuda.meDeben,
-        montoTotal: 2500.00,
-        montoPendiente: 1500.00,
-        fechaLimitePago: DateTime.now().add(const Duration(days: 10)),
-        notas: 'Préstamo personal acumulado',
-        historialPartidas: [
-          PartidaDeudaModelo(
-            id: 'p1',
-            concepto: 'Préstamo inicial para refacciones',
-            monto: 1500.00,
-            fecha: DateTime.now().subtract(const Duration(days: 20)),
-            esAbono: false,
-          ),
-          PartidaDeudaModelo(
-            id: 'p2',
-            concepto: 'Préstamo para despensa urgente',
-            monto: 1000.00,
-            fecha: DateTime.now().subtract(const Duration(days: 10)),
-            esAbono: false,
-          ),
-          PartidaDeudaModelo(
-            id: 'p3',
-            concepto: 'Abono en efectivo recibido',
-            monto: 1000.00,
-            fecha: DateTime.now().subtract(const Duration(days: 3)),
-            esAbono: true,
-          ),
-        ],
-      ),
-    ];
-
-    for (final deuda in deudasIniciales) {
-      await db.insert('deudas', deuda.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
-      for (final partida in deuda.historialPartidas) {
-        await db.insert(
-          'partidas_deuda',
-          partida.toMap(idDeuda: deuda.id),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-    }
-
-    // 3. Movimientos iniciales
-    final movimientosIniciales = [
-      MovimientoModelo(
-        id: '1',
-        titulo: 'Pago de Nómina',
-        monto: 15000.00,
-        fecha: DateTime.now(),
-        tipo: TipoMovimiento.ingreso,
-        icono: Icons.account_balance_wallet_rounded,
-        categoria: 'Sueldo',
-      ),
-      MovimientoModelo(
-        id: '2',
-        titulo: 'Supermercado Mensual',
-        monto: 1850.50,
-        fecha: DateTime.now().subtract(const Duration(days: 1)),
-        tipo: TipoMovimiento.gasto,
-        icono: Icons.shopping_cart_rounded,
-        categoria: 'Alimentación',
-      ),
-      MovimientoModelo(
-        id: '3',
-        titulo: 'Servicio de Internet',
-        monto: 600.00,
-        fecha: DateTime.now().subtract(const Duration(days: 2)),
-        tipo: TipoMovimiento.gasto,
-        icono: Icons.wifi_rounded,
-        categoria: 'Servicios',
-      ),
-    ];
-
-    for (final mov in movimientosIniciales) {
-      await db.insert('movimientos', mov.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
-    }
+  // Vaciar completamente todas las tablas de la base de datos
+  Future<void> vaciarBaseDatos() async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('partidas_deuda');
+      await txn.delete('movimientos');
+      await txn.delete('deudas');
+      await txn.delete('metas');
+    });
   }
 
   // ==========================================
