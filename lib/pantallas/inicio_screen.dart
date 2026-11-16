@@ -31,7 +31,6 @@ class InicioScreen extends StatelessWidget {
   final Function(MovimientoModelo) alRegistrarMovimiento;
   final VoidCallback? alPulsarNuevaMeta;
   final VoidCallback? alAbrirPanelFinanzas;
-  final VoidCallback? alAbrirMenu;
 
   const InicioScreen({
     super.key,
@@ -41,7 +40,6 @@ class InicioScreen extends StatelessWidget {
     required this.alRegistrarMovimiento,
     this.alPulsarNuevaMeta,
     this.alAbrirPanelFinanzas,
-    this.alAbrirMenu,
   });
 
   // Métodos de cálculo dinámico para el balance
@@ -83,43 +81,21 @@ class InicioScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Encabezado con saludo y botones de acceso al menú y panel de finanzas
+              // Encabezado con saludo y botón de acceso a panel de finanzas
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      if (alAbrirMenu != null) ...[
-                        IconButton(
-                          icon: const Icon(Icons.menu_rounded, color: ColoresApp.primarioVerde),
-                          onPressed: alAbrirMenu,
-                          tooltip: 'Abrir Menú',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SizedBox(height: 2),
+                      Text(
+                        'Mi Resumen Financiero',
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          color: ColoresApp.textoPrincipal,
                         ),
-                        const SizedBox(width: 10),
-                      ],
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Hola de nuevo 👋',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: ColoresApp.textoSecundario,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Mi Resumen Financiero',
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                              color: ColoresApp.textoPrincipal,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -130,14 +106,23 @@ class InicioScreen extends StatelessWidget {
                           onTap: alAbrirPanelFinanzas,
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: ColoresApp.primarioVerde.withValues(alpha: 0.12),
+                              color: ColoresApp.primarioVerde.withValues(
+                                alpha: 0.12,
+                              ),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.pie_chart_rounded, size: 18, color: ColoresApp.primarioVerde),
+                                Icon(
+                                  Icons.pie_chart_rounded,
+                                  size: 18,
+                                  color: ColoresApp.primarioVerde,
+                                ),
                                 SizedBox(width: 6),
                                 Text(
                                   'Gráficas',
@@ -162,7 +147,10 @@ class InicioScreen extends StatelessWidget {
                 onTap: alAbrirPanelFinanzas,
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: dineroDisponible >= 0
                         ? ColoresApp.primarioVerde.withValues(alpha: 0.08)
@@ -177,8 +165,12 @@ class InicioScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        dineroDisponible >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded,
-                        color: dineroDisponible >= 0 ? ColoresApp.primarioVerde : ColoresApp.gastoRojo,
+                        dineroDisponible >= 0
+                            ? Icons.check_circle_rounded
+                            : Icons.warning_rounded,
+                        color: dineroDisponible >= 0
+                            ? ColoresApp.primarioVerde
+                            : ColoresApp.gastoRojo,
                         size: 20,
                       ),
                       const SizedBox(width: 10),
@@ -188,7 +180,10 @@ class InicioScreen extends StatelessWidget {
                           children: [
                             const Text(
                               'Dinero disponible para gastar hoy:',
-                              style: TextStyle(fontSize: 11, color: ColoresApp.textoSecundario),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: ColoresApp.textoSecundario,
+                              ),
                             ),
                             Text(
                               '\$${dineroDisponible.toStringAsFixed(2)}',
@@ -203,7 +198,11 @@ class InicioScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: ColoresApp.textoSecundario),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: ColoresApp.textoSecundario,
+                      ),
                     ],
                   ),
                 ),
@@ -235,19 +234,22 @@ class InicioScreen extends StatelessWidget {
                     icono: Icons.add_rounded,
                     etiqueta: 'Ingreso',
                     colorFondo: ColoresApp.ingresoVerde,
-                    alPresionar: () => _mostrarModalRegistro(context, TipoMovimiento.ingreso),
+                    alPresionar: () =>
+                        _mostrarModalRegistro(context, TipoMovimiento.ingreso),
                   ),
                   _BotonAccionRapidaItem(
                     icono: Icons.remove_rounded,
                     etiqueta: 'Gasto',
                     colorFondo: ColoresApp.gastoRojo,
-                    alPresionar: () => _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                    alPresionar: () =>
+                        _mostrarModalRegistro(context, TipoMovimiento.gasto),
                   ),
                   _BotonAccionRapidaItem(
                     icono: Icons.credit_card_rounded,
                     etiqueta: 'Tarjeta',
                     colorFondo: Colors.purple,
-                    alPresionar: () => _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                    alPresionar: () =>
+                        _mostrarModalRegistro(context, TipoMovimiento.gasto),
                   ),
                   _BotonAccionRapidaItem(
                     icono: Icons.flag_rounded,
@@ -271,10 +273,7 @@ class InicioScreen extends StatelessWidget {
                       color: ColoresApp.textoPrincipal,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Ver todos'),
-                  ),
+                  TextButton(onPressed: () {}, child: const Text('Ver todos')),
                 ],
               ),
               const SizedBox(height: 8),
@@ -286,7 +285,11 @@ class InicioScreen extends StatelessWidget {
                   alignment: Alignment.center,
                   child: const Column(
                     children: [
-                      Icon(Icons.inbox_outlined, size: 48, color: ColoresApp.textoSecundario),
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: 48,
+                        color: ColoresApp.textoSecundario,
+                      ),
                       SizedBox(height: 8),
                       Text(
                         'Aún no hay movimientos registrados',

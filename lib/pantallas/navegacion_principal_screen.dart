@@ -584,7 +584,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alRegistrarMovimiento: _agregarMovimiento,
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
         alAbrirPanelFinanzas: _abrirPanelFinanzas,
-        alAbrirMenu: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       MovimientosScreen(
         listaMovimientos: _listaMovimientos,
