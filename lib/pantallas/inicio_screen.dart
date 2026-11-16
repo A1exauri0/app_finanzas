@@ -25,78 +25,31 @@ import '../componentes/deudas_resumen_card.dart';
 // ==========================================
 // PANTALLA PRINCIPAL: INICIO
 // ==========================================
-class InicioScreen extends StatefulWidget {
-  const InicioScreen({super.key});
+class InicioScreen extends StatelessWidget {
+  final List<MovimientoModelo> listaMovimientos;
+  final List<DeudaModelo> listaDeudas;
+  final Function(MovimientoModelo) alRegistrarMovimiento;
 
-  @override
-  State<InicioScreen> createState() => _InicioScreenState();
-}
-
-class _InicioScreenState extends State<InicioScreen> {
-  // Lista en memoria de personas que deben dinero
-  final List<DeudaModelo> _listaDeudasPorCobrar = [
-    DeudaModelo(
-      id: 'deuda-1',
-      nombreDeudor: 'Juan Pérez',
-      montoTotalPrestado: 2500.00,
-      montoPendiente: 1500.00,
-      fechaPrestamo: DateTime.now().subtract(const Duration(days: 15)),
-      notas: 'Préstamo para reparación de vehículo',
-    ),
-    DeudaModelo(
-      id: 'deuda-2',
-      nombreDeudor: 'Carlos Gómez',
-      montoTotalPrestado: 3000.00,
-      montoPendiente: 3000.00,
-      fechaPrestamo: DateTime.now().subtract(const Duration(days: 5)),
-      notas: 'Préstamo personal',
-    ),
-  ];
-
-  // Lista en memoria de movimientos financieros
-  final List<MovimientoModelo> _listaMovimientos = [
-    MovimientoModelo(
-      id: '1',
-      titulo: 'Pago de Nómina',
-      monto: 15000.00,
-      fecha: DateTime.now(),
-      tipo: TipoMovimiento.ingreso,
-      icono: Icons.account_balance_wallet_rounded,
-      categoria: 'Sueldo',
-    ),
-    MovimientoModelo(
-      id: '2',
-      titulo: 'Supermercado Mensual',
-      monto: 1850.50,
-      fecha: DateTime.now().subtract(const Duration(days: 1)),
-      tipo: TipoMovimiento.gasto,
-      icono: Icons.shopping_cart_rounded,
-      categoria: 'Alimentación',
-    ),
-    MovimientoModelo(
-      id: '3',
-      titulo: 'Servicio de Internet',
-      monto: 600.00,
-      fecha: DateTime.now().subtract(const Duration(days: 2)),
-      tipo: TipoMovimiento.gasto,
-      icono: Icons.wifi_rounded,
-      categoria: 'Servicios',
-    ),
-  ];
+  const InicioScreen({
+    super.key,
+    required this.listaMovimientos,
+    required this.listaDeudas,
+    required this.alRegistrarMovimiento,
+  });
 
   // Métodos de cálculo dinámico para el balance
-  double get _totalIngresos => _listaMovimientos
+  double get _totalIngresos => listaMovimientos
       .where((m) => m.tipo == TipoMovimiento.ingreso)
       .fold(0.0, (acumulado, m) => acumulado + m.monto);
 
-  double get _totalGastos => _listaMovimientos
+  double get _totalGastos => listaMovimientos
       .where((m) => m.tipo == TipoMovimiento.gasto)
       .fold(0.0, (acumulado, m) => acumulado + m.monto);
 
   double get _saldoTotal => _totalIngresos - _totalGastos;
 
   // Función para abrir el modal de nuevo movimiento
-  void _mostrarModalRegistro(TipoMovimiento tipoInicial) {
+  void _mostrarModalRegistro(BuildContext context, TipoMovimiento tipoInicial) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -106,40 +59,8 @@ class _InicioScreenState extends State<InicioScreen> {
       ),
       builder: (ctx) => NuevoMovimientoModal(
         tipoInicial: tipoInicial,
-        listaDeudasActivas: _listaDeudasPorCobrar,
-        alGuardarMovimiento: (nuevoMovimiento) {
-          setState(() {
-            _listaMovimientos.insert(0, nuevoMovimiento);
-
-            // Si es un cobro de deuda, restamos de la deuda asociada
-            if (nuevoMovimiento.idDeudaAsociada != null) {
-              final deudaIndex = _listaDeudasPorCobrar.indexWhere(
-                (d) => d.id == nuevoMovimiento.idDeudaAsociada,
-              );
-              if (deudaIndex != -1) {
-                final deuda = _listaDeudasPorCobrar[deudaIndex];
-                deuda.montoPendiente -= nuevoMovimiento.monto;
-                if (deuda.montoPendiente < 0) deuda.montoPendiente = 0;
-              }
-            }
-          });
-
-          // Notificación visual de confirmación
-          final bool esCobro = nuevoMovimiento.nombreDeudorAsociado != null;
-          final String mensaje = esCobro
-              ? 'Se registró abono de \$${nuevoMovimiento.monto.toStringAsFixed(2)} de ${nuevoMovimiento.nombreDeudorAsociado}'
-              : '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente';
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(mensaje),
-              backgroundColor: nuevoMovimiento.tipo == TipoMovimiento.ingreso
-                  ? ColoresApp.ingresoVerde
-                  : ColoresApp.gastoRojo,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        },
+        listaDeudasActivas: listaDeudas,
+        alGuardarMovimiento: alRegistrarMovimiento,
       ),
     );
   }
@@ -199,9 +120,9 @@ class _InicioScreenState extends State<InicioScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Tarjeta de cuentas por cobrar (Deudas de terceros)
+              // Tarjeta de cuentas por cobrar y deudas activas
               DeudasResumenCard(
-                listaDeudas: _listaDeudasPorCobrar,
+                listaDeudas: listaDeudas,
                 alPulsarVerDetalles: () {},
               ),
               const SizedBox(height: 24),
@@ -223,24 +144,24 @@ class _InicioScreenState extends State<InicioScreen> {
                     icono: Icons.add_rounded,
                     etiqueta: 'Ingreso',
                     colorFondo: ColoresApp.ingresoVerde,
-                    alPresionar: () => _mostrarModalRegistro(TipoMovimiento.ingreso),
+                    alPresionar: () => _mostrarModalRegistro(context, TipoMovimiento.ingreso),
                   ),
                   _BotonAccionRapidaItem(
                     icono: Icons.remove_rounded,
                     etiqueta: 'Gasto',
                     colorFondo: ColoresApp.gastoRojo,
-                    alPresionar: () => _mostrarModalRegistro(TipoMovimiento.gasto),
+                    alPresionar: () => _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                  ),
+                  _BotonAccionRapidaItem(
+                    icono: Icons.credit_card_rounded,
+                    etiqueta: 'Tarjeta',
+                    colorFondo: Colors.purple,
+                    alPresionar: () => _mostrarModalRegistro(context, TipoMovimiento.gasto),
                   ),
                   _BotonAccionRapidaItem(
                     icono: Icons.flag_rounded,
                     etiqueta: 'Meta',
                     colorFondo: ColoresApp.metaNaranja,
-                    alPresionar: () {},
-                  ),
-                  _BotonAccionRapidaItem(
-                    icono: Icons.trending_up_rounded,
-                    etiqueta: 'Inversión',
-                    colorFondo: ColoresApp.inversionAzul,
                     alPresionar: () {},
                   ),
                 ],
@@ -268,7 +189,7 @@ class _InicioScreenState extends State<InicioScreen> {
               const SizedBox(height: 8),
 
               // Lista de movimientos recientes o estado vacío
-              if (_listaMovimientos.isEmpty)
+              if (listaMovimientos.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(32),
                   alignment: Alignment.center,
@@ -287,15 +208,17 @@ class _InicioScreenState extends State<InicioScreen> {
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _listaMovimientos.length,
+                  itemCount: listaMovimientos.length,
                   itemBuilder: (context, index) {
-                    final movimiento = _listaMovimientos[index];
+                    final movimiento = listaMovimientos[index];
                     return MovimientoItemTile(
                       movimiento: movimiento,
                       alPulsar: () {},
                     );
                   },
                 ),
+              // Espacio inferior para no tapar con el botón flotante y bottom app bar
+              const SizedBox(height: 70),
             ],
           ),
         ),
