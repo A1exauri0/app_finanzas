@@ -22,8 +22,15 @@ class MovimientoModelo {
   final TipoMovimiento tipo;
   final IconData icono;
   final String categoria;
+
+  // Campos para vinculación con cobranza de deudas
   final String? idDeudaAsociada;
   final String? nombreDeudorAsociado;
+
+  // Campos para gastos pagados con tarjeta de crédito
+  final bool pagadoConTarjeta;
+  final String? idTarjetaUtilizada;
+  final String? nombreTarjetaUtilizada;
 
   MovimientoModelo({
     required this.id,
@@ -35,5 +42,8 @@ class MovimientoModelo {
     required this.categoria,
     this.idDeudaAsociada,
     this.nombreDeudorAsociado,
+    this.pagadoConTarjeta = false,
+    this.idTarjetaUtilizada,
+    this.nombreTarjetaUtilizada,
   });
 }
