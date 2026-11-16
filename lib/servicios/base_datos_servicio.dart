@@ -4,7 +4,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart' as sqflite;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as sqflite_ffi;
 
 // ==========================================
 // IMPORTACIONES DE MODELOS
@@ -18,12 +19,33 @@ import '../modelos/meta_modelo.dart';
 // ==========================================
 class BaseDatosServicio {
   static final BaseDatosServicio instancia = BaseDatosServicio._iniciar();
-  static Database? _baseDatos;
+  static sqflite.Database? _baseDatos;
 
   // Ruta opcional para pruebas en memoria (inMemoryDatabasePath)
   static String? rutaPersonalizada;
 
   BaseDatosServicio._iniciar();
+
+  // Método público para asegurar que la fábrica esté configurada antes de cualquier consulta
+  static void inicializarFabricaSQLite() {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      sqflite_ffi.sqfliteFfiInit();
+      sqflite.databaseFactory = sqflite_ffi.databaseFactoryFfi;
+    } else {
+      sqflite.databaseFactory = sqflite.databaseFactorySqflitePlugin;
+    }
+  }
+
+  // Obtener la fábrica correcta según la plataforma activa (Android, iOS o Desktop FFI)
+  static sqflite.DatabaseFactory get _obtenerFabricaActiva {
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      sqflite_ffi.sqfliteFfiInit();
+      return sqflite_ffi.databaseFactoryFfi;
+    }
+    return sqflite.databaseFactorySqflitePlugin;
+  }
 
   // Reiniciar la conexión para pruebas
   static Future<void> reiniciarParaPruebas() async {
@@ -34,37 +56,33 @@ class BaseDatosServicio {
   }
 
   // Getter asíncrono para obtener la instancia de SQLite
-  Future<Database> get database async {
+  Future<sqflite.Database> get database async {
     if (_baseDatos != null) return _baseDatos!;
     _baseDatos = await _inicializarBaseDatos();
     return _baseDatos!;
   }
 
   // Inicialización de la base de datos según la plataforma
-  Future<Database> _inicializarBaseDatos() async {
-    // Si corre en Windows, Linux o macOS, inicializamos el factory FFI
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
+  Future<sqflite.Database> _inicializarBaseDatos() async {
+    inicializarFabricaSQLite();
+    final sqflite.DatabaseFactory fabrica = _obtenerFabricaActiva;
 
     final String rutaCompleta;
     if (rutaPersonalizada != null) {
       rutaCompleta = rutaPersonalizada!;
     } else {
-      final String rutaDirectorio = await getDatabasesPath();
+      final String rutaDirectorio = await fabrica.getDatabasesPath();
       rutaCompleta = p.join(rutaDirectorio, 'finanzas_locales.db');
     }
 
-    return await openDatabase(
+    return await fabrica.openDatabase(
       rutaCompleta,
-      version: 1,
-      onCreate: _crearTablas,
+      options: sqflite.OpenDatabaseOptions(version: 1, onCreate: _crearTablas),
     );
   }
 
   // Creación del esquema relacional
-  Future<void> _crearTablas(Database db, int version) async {
+  Future<void> _crearTablas(sqflite.Database db, int version) async {
     // 1. Tabla de Movimientos
     await db.execute('''
       CREATE TABLE movimientos (
@@ -156,7 +174,7 @@ class BaseDatosServicio {
     await db.insert(
       'movimientos',
       movimiento.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
     );
   }
 
@@ -172,11 +190,7 @@ class BaseDatosServicio {
 
   Future<void> eliminarMovimiento(String id) async {
     final db = await database;
-    await db.delete(
-      'movimientos',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete('movimientos', where: 'id = ?', whereArgs: [id]);
   }
 
   // ==========================================
@@ -196,7 +210,9 @@ class BaseDatosServicio {
         orderBy: 'fecha DESC',
       );
 
-      final partidas = partidasMaps.map((p) => PartidaDeudaModelo.fromMap(p)).toList();
+      final partidas = partidasMaps
+          .map((p) => PartidaDeudaModelo.fromMap(p))
+          .toList();
       listaDeudas.add(DeudaModelo.fromMap(map, partidas: partidas));
     }
 
@@ -209,13 +225,13 @@ class BaseDatosServicio {
       await txn.insert(
         'deudas',
         deuda.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
       );
       for (final partida in deuda.historialPartidas) {
         await txn.insert(
           'partidas_deuda',
           partida.toMap(idDeuda: deuda.id),
-          conflictAlgorithm: ConflictAlgorithm.replace,
+          conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
         );
       }
     });
@@ -232,12 +248,16 @@ class BaseDatosServicio {
       );
 
       // Reemplazamos partidas del historial para mantener sincronía
-      await txn.delete('partidas_deuda', where: 'idDeuda = ?', whereArgs: [deuda.id]);
+      await txn.delete(
+        'partidas_deuda',
+        where: 'idDeuda = ?',
+        whereArgs: [deuda.id],
+      );
       for (final partida in deuda.historialPartidas) {
         await txn.insert(
           'partidas_deuda',
           partida.toMap(idDeuda: deuda.id),
-          conflictAlgorithm: ConflictAlgorithm.replace,
+          conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
         );
       }
     });
@@ -265,7 +285,7 @@ class BaseDatosServicio {
     await db.insert(
       'metas',
       meta.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
     );
   }
 
@@ -281,10 +301,6 @@ class BaseDatosServicio {
 
   Future<void> eliminarMeta(String id) async {
     final db = await database;
-    await db.delete(
-      'metas',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete('metas', where: 'id = ?', whereArgs: [id]);
   }
 }

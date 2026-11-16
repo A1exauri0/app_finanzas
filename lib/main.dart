@@ -9,6 +9,11 @@ import 'package:flutter/material.dart';
 import 'constantes/colores_app.dart';
 
 // ==========================================
+// IMPORTACIONES DE SERVICIOS
+// ==========================================
+import 'servicios/base_datos_servicio.dart';
+
+// ==========================================
 // IMPORTACIONES DE PANTALLAS
 // ==========================================
 import 'pantallas/navegacion_principal_screen.dart';
@@ -17,6 +22,11 @@ import 'pantallas/navegacion_principal_screen.dart';
 // PUNTO DE ENTRADA PRINCIPAL
 // ==========================================
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicialización multiplataforma de SQLite (Android, iOS, Windows, Linux, macOS)
+  BaseDatosServicio.inicializarFabricaSQLite();
+
   runApp(const AppFinanzas());
 }
 
