@@ -29,6 +29,27 @@ class PartidaDeudaModelo {
     required this.fecha,
     this.esAbono = false,
   });
+
+  Map<String, dynamic> toMap({required String idDeuda}) {
+    return {
+      'id': id,
+      'idDeuda': idDeuda,
+      'concepto': concepto,
+      'monto': monto,
+      'fecha': fecha.toIso8601String(),
+      'esAbono': esAbono ? 1 : 0,
+    };
+  }
+
+  factory PartidaDeudaModelo.fromMap(Map<String, dynamic> map) {
+    return PartidaDeudaModelo(
+      id: map['id'] as String,
+      concepto: map['concepto'] as String,
+      monto: (map['monto'] as num).toDouble(),
+      fecha: DateTime.parse(map['fecha'] as String),
+      esAbono: (map['esAbono'] as int? ?? 0) == 1,
+    );
+  }
 }
 
 // ==========================================
@@ -143,4 +164,50 @@ class DeudaModelo {
 
   // Getter de conveniencia para compatibilidad
   String get nombreDeudor => tituloOEntidad;
+
+  // ==========================================
+  // METODOS DE SERIALIZACION PARA SQLITE
+  // ==========================================
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'tituloOEntidad': tituloOEntidad,
+      'tipoDeuda': tipoDeuda.name,
+      'montoTotal': montoTotal,
+      'limiteAjustado': limiteAjustado,
+      'montoPendiente': montoPendiente,
+      'fechaLimitePago': fechaLimitePago?.toIso8601String(),
+      'diaCorte': diaCorte,
+      'colorTarjetaValue': colorTarjeta?.toARGB32(),
+      'notas': notas,
+    };
+  }
+
+  factory DeudaModelo.fromMap(
+    Map<String, dynamic> map, {
+    List<PartidaDeudaModelo>? partidas,
+  }) {
+    return DeudaModelo(
+      id: map['id'] as String,
+      tituloOEntidad: map['tituloOEntidad'] as String,
+      tipoDeuda: TipoDeuda.values.firstWhere(
+        (t) => t.name == (map['tipoDeuda'] as String),
+        orElse: () => TipoDeuda.tarjetaCredito,
+      ),
+      montoTotal: (map['montoTotal'] as num).toDouble(),
+      limiteAjustado: map['limiteAjustado'] != null
+          ? (map['limiteAjustado'] as num).toDouble()
+          : null,
+      montoPendiente: (map['montoPendiente'] as num).toDouble(),
+      fechaLimitePago: map['fechaLimitePago'] != null
+          ? DateTime.parse(map['fechaLimitePago'] as String)
+          : null,
+      diaCorte: map['diaCorte'] as int?,
+      colorTarjeta: map['colorTarjetaValue'] != null
+          ? Color(map['colorTarjetaValue'] as int)
+          : null,
+      notas: map['notas'] as String?,
+      historialPartidas: partidas ?? [],
+    );
+  }
 }

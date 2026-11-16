@@ -16,6 +16,11 @@ import '../modelos/deuda_modelo.dart';
 import '../modelos/meta_modelo.dart';
 
 // ==========================================
+// IMPORTACIONES DE SERVICIOS
+// ==========================================
+import '../servicios/base_datos_servicio.dart';
+
+// ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/nuevo_movimiento_modal.dart';
@@ -48,8 +53,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Índice actual de la pantalla (0: Inicio, 1: Movimientos, 2: Metas, 3: Deudas)
   int _indicePestanaActual = 0;
 
-  // Estado compartido de Metas y Objetivos de Compra
-  final List<MetaModelo> _listaMetas = [
+  // Estado compartido de Metas, Deudas y Movimientos cargados desde SQLite
+  List<MetaModelo> _listaMetas = [
     MetaModelo(
       id: 'meta-1',
       titulo: 'Laptop de Trabajo',
@@ -74,24 +79,23 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       id: 'meta-3',
       titulo: 'Fondo de Emergencia',
       montoObjetivo: 20000.00,
-      montoAhorrado: 20000.00, // Cumplida
+      montoAhorrado: 20000.00,
       categoria: 'Fondo de Emergencia',
       icono: Icons.shield_rounded,
       color: const Color(0xFF2E7D32),
     ),
   ];
 
-  // Estado compartido de deudas y tarjetas con historial de pagos y compras
-  final List<DeudaModelo> _listaDeudas = [
+  List<DeudaModelo> _listaDeudas = [
     DeudaModelo(
       id: 'tarjeta-nu',
       tituloOEntidad: 'Nu México',
       tipoDeuda: TipoDeuda.tarjetaCredito,
       montoTotal: 15000.00,
-      limiteAjustado: 8000.00, // Tope personal fijado por el usuario
+      limiteAjustado: 8000.00,
       montoPendiente: 3200.00,
       diaCorte: 12,
-      colorTarjeta: const Color(0xFF820AD1), // Morado característico de Nu
+      colorTarjeta: const Color(0xFF820AD1),
       fechaLimitePago: DateTime.now().add(const Duration(days: 10)),
       historialPartidas: [
         PartidaDeudaModelo(
@@ -100,20 +104,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
           monto: 2200.00,
           fecha: DateTime.now().subtract(const Duration(days: 8)),
           esAbono: false,
-        ),
-        PartidaDeudaModelo(
-          id: 'nu-2',
-          concepto: 'Cena Restaurante',
-          monto: 1000.00,
-          fecha: DateTime.now().subtract(const Duration(days: 5)),
-          esAbono: false,
-        ),
-        PartidaDeudaModelo(
-          id: 'nu-3',
-          concepto: 'Pago mensual para no generar intereses',
-          monto: 1500.00,
-          fecha: DateTime.now().subtract(const Duration(days: 2)),
-          esAbono: true,
         ),
       ],
     ),
@@ -125,24 +115,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       limiteAjustado: 4000.00,
       montoPendiente: 1450.00,
       diaCorte: 24,
-      colorTarjeta: const Color(0xFFFF7700), // Naranja característico de Didi
+      colorTarjeta: const Color(0xFFFF7700),
       fechaLimitePago: DateTime.now().add(const Duration(days: 15)),
-      historialPartidas: [
-        PartidaDeudaModelo(
-          id: 'didi-1',
-          concepto: 'Gasolina',
-          monto: 850.00,
-          fecha: DateTime.now().subtract(const Duration(days: 4)),
-          esAbono: false,
-        ),
-        PartidaDeudaModelo(
-          id: 'didi-2',
-          concepto: 'Suscripciones streaming',
-          monto: 600.00,
-          fecha: DateTime.now().subtract(const Duration(days: 2)),
-          esAbono: false,
-        ),
-      ],
+      historialPartidas: [],
     ),
     DeudaModelo(
       id: 'tarjeta-mp',
@@ -151,17 +126,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       montoTotal: 10000.00,
       montoPendiente: 890.00,
       diaCorte: 5,
-      colorTarjeta: const Color(0xFF009EE3), // Azul característico de Mercado Pago
+      colorTarjeta: const Color(0xFF009EE3),
       fechaLimitePago: DateTime.now().add(const Duration(days: 5)),
-      historialPartidas: [
-        PartidaDeudaModelo(
-          id: 'mp-1',
-          concepto: 'Compra Mercado Libre',
-          monto: 890.00,
-          fecha: DateTime.now().subtract(const Duration(days: 1)),
-          esAbono: false,
-        ),
-      ],
+      historialPartidas: [],
     ),
     DeudaModelo(
       id: 'deuda-1',
@@ -171,50 +138,11 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       montoPendiente: 1500.00,
       fechaLimitePago: DateTime.now().add(const Duration(days: 10)),
       notas: 'Préstamo personal acumulado',
-      historialPartidas: [
-        PartidaDeudaModelo(
-          id: 'p1',
-          concepto: 'Préstamo inicial para refacciones',
-          monto: 1500.00,
-          fecha: DateTime.now().subtract(const Duration(days: 20)),
-          esAbono: false,
-        ),
-        PartidaDeudaModelo(
-          id: 'p2',
-          concepto: 'Préstamo para despensa urgente',
-          monto: 1000.00,
-          fecha: DateTime.now().subtract(const Duration(days: 10)),
-          esAbono: false,
-        ),
-        PartidaDeudaModelo(
-          id: 'p3',
-          concepto: 'Abono en efectivo recibido',
-          monto: 1000.00,
-          fecha: DateTime.now().subtract(const Duration(days: 3)),
-          esAbono: true,
-        ),
-      ],
-    ),
-    DeudaModelo(
-      id: 'deuda-propia-1',
-      tituloOEntidad: 'Préstamo Amigo',
-      tipoDeuda: TipoDeuda.debo,
-      montoTotal: 2000.00,
-      montoPendiente: 1000.00,
-      historialPartidas: [
-        PartidaDeudaModelo(
-          id: 'da1',
-          concepto: 'Préstamo para trámite',
-          monto: 2000.00,
-          fecha: DateTime.now().subtract(const Duration(days: 12)),
-          esAbono: false,
-        ),
-      ],
+      historialPartidas: [],
     ),
   ];
 
-  // Estado compartido de movimientos
-  final List<MovimientoModelo> _listaMovimientos = [
+  List<MovimientoModelo> _listaMovimientos = [
     MovimientoModelo(
       id: '1',
       titulo: 'Pago de Nómina',
@@ -244,6 +172,46 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosDesdeBaseDatos();
+  }
+
+  // Carga asíncrona de datos desde la base de datos local SQLite
+  Future<void> _cargarDatosDesdeBaseDatos() async {
+    try {
+      final movimientos = await BaseDatosServicio.instancia.obtenerMovimientos();
+      final deudas = await BaseDatosServicio.instancia.obtenerDeudas();
+      final metas = await BaseDatosServicio.instancia.obtenerMetas();
+
+      if (mounted) {
+        setState(() {
+          _listaMovimientos = movimientos;
+          _listaDeudas = deudas;
+          _listaMetas = metas;
+        });
+      }
+    } catch (_) {
+      // Si ocurre un error, conserva los datos en memoria
+    }
+  }
+
+  // Cálculo de dinero líquido disponible real (Ingresos - Gastos en efectivo - Ahorro en metas)
+  double get _dineroDisponibleReal {
+    final double totalIngresos = _listaMovimientos
+        .where((m) => m.tipo == TipoMovimiento.ingreso)
+        .fold(0.0, (acum, m) => acum + m.monto);
+
+    final double gastosEfectivo = _listaMovimientos
+        .where((m) => m.tipo == TipoMovimiento.gasto && !m.pagadoConTarjeta)
+        .fold(0.0, (acum, m) => acum + m.monto);
+
+    final double totalEnMetas = _listaMetas.fold(0.0, (acum, meta) => acum + meta.montoAhorrado);
+
+    return totalIngresos - gastosEfectivo - totalEnMetas;
+  }
+
   // Registrar un movimiento e impactar deudas o tarjetas de crédito con historial
   void _agregarMovimiento(MovimientoModelo nuevoMovimiento) {
     setState(() {
@@ -261,6 +229,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
             fecha: nuevoMovimiento.fecha,
             concepto: nuevoMovimiento.titulo,
           );
+          BaseDatosServicio.instancia.actualizarDeuda(tarjeta);
         }
       }
 
@@ -276,9 +245,13 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
             fecha: nuevoMovimiento.fecha,
             concepto: nuevoMovimiento.titulo,
           );
+          BaseDatosServicio.instancia.actualizarDeuda(deuda);
         }
       }
     });
+
+    // Persistir movimiento en SQLite
+    BaseDatosServicio.instancia.insertarMovimiento(nuevoMovimiento);
 
     String mensaje;
     if (nuevoMovimiento.pagadoConTarjeta) {
@@ -311,6 +284,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       }
     });
 
+    BaseDatosServicio.instancia.actualizarMovimiento(movimientoActualizado);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Movimiento "${movimientoActualizado.titulo}" actualizado'),
@@ -334,6 +309,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
             t.montoPendiente -= movEliminado.monto;
             if (t.montoPendiente < 0) t.montoPendiente = 0;
             t.historialPartidas.removeWhere((p) => p.concepto == movEliminado.titulo && p.monto == movEliminado.monto);
+            BaseDatosServicio.instancia.actualizarDeuda(t);
           }
         }
 
@@ -344,12 +320,15 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
             final d = _listaDeudas[deudaIndex];
             d.montoPendiente += movEliminado.monto;
             d.historialPartidas.removeWhere((p) => p.monto == movEliminado.monto && p.esAbono);
+            BaseDatosServicio.instancia.actualizarDeuda(d);
           }
         }
 
         _listaMovimientos.removeAt(index);
       }
     });
+
+    BaseDatosServicio.instancia.eliminarMovimiento(idMovimiento);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -364,6 +343,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     setState(() {
       _listaMetas.add(nuevaMeta);
     });
+
+    BaseDatosServicio.instancia.insertarMeta(nuevaMeta);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Meta "${nuevaMeta.titulo}" creada con éxito'),
@@ -378,6 +360,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       final index = _listaMetas.indexWhere((m) => m.id == idMeta);
       if (index != -1) {
         _listaMetas[index].abonar(montoAbono);
+        BaseDatosServicio.instancia.actualizarMeta(_listaMetas[index]);
       }
     });
   }
@@ -390,6 +373,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         _listaMetas[index] = metaActualizada;
       }
     });
+
+    BaseDatosServicio.instancia.actualizarMeta(metaActualizada);
   }
 
   // Eliminar una meta
@@ -397,6 +382,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     setState(() {
       _listaMetas.removeWhere((m) => m.id == idMeta);
     });
+
+    BaseDatosServicio.instancia.eliminarMeta(idMeta);
   }
 
   // Registrar una nueva deuda o tarjeta
@@ -404,6 +391,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     setState(() {
       _listaDeudas.add(nuevaDeuda);
     });
+
+    BaseDatosServicio.instancia.insertarDeuda(nuevaDeuda);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${nuevaDeuda.tituloOEntidad} agregada exitosamente'),
@@ -420,6 +410,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         _listaDeudas[index] = tarjetaActualizada;
       }
     });
+
+    BaseDatosServicio.instancia.actualizarDeuda(tarjetaActualizada);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Parámetros de ${tarjetaActualizada.tituloOEntidad} actualizados'),
@@ -436,6 +429,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         _listaDeudas[index] = deudaActualizada;
       }
     });
+
+    BaseDatosServicio.instancia.actualizarDeuda(deudaActualizada);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Registro de "${deudaActualizada.tituloOEntidad}" actualizado'),
@@ -449,6 +445,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     setState(() {
       _listaDeudas.removeWhere((d) => d.id == idDeuda);
     });
+
+    BaseDatosServicio.instancia.eliminarDeuda(idDeuda);
   }
 
   // Acumular un nuevo préstamo a una persona existente
@@ -458,6 +456,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       if (index != -1) {
         final persona = _listaDeudas[index];
         persona.acumularNuevoPrestamo(concepto: concepto, monto: monto, fecha: fecha);
+        BaseDatosServicio.instancia.actualizarDeuda(persona);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -477,6 +476,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       final index = _listaDeudas.indexWhere((d) => d.id == idTarjeta);
       if (index != -1) {
         _listaDeudas[index].diaCorte = nuevoDiaCorte;
+        BaseDatosServicio.instancia.actualizarDeuda(_listaDeudas[index]);
       }
     });
   }
@@ -509,21 +509,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
       _agregarMovimiento(transaccion);
     }
-  }
-
-  // Cálculo de dinero líquido disponible real (Ingresos - Gastos en efectivo - Ahorro en metas)
-  double get _dineroDisponibleReal {
-    final double totalIngresos = _listaMovimientos
-        .where((m) => m.tipo == TipoMovimiento.ingreso)
-        .fold(0.0, (acum, m) => acum + m.monto);
-
-    final double gastosEfectivo = _listaMovimientos
-        .where((m) => m.tipo == TipoMovimiento.gasto && !m.pagadoConTarjeta)
-        .fold(0.0, (acum, m) => acum + m.monto);
-
-    final double totalEnMetas = _listaMetas.fold(0.0, (acum, meta) => acum + meta.montoAhorrado);
-
-    return totalIngresos - gastosEfectivo - totalEnMetas;
   }
 
   // Navegar a la pantalla de análisis financiero y gráficas

@@ -68,6 +68,44 @@ class MetaModelo {
   // Método para retirar dinero de la meta si es necesario
   void retirar(double monto) {
     montoAhorrado -= monto;
-    if (montoAhorrado < 0) montoAhorrado = 0.0;
+    if (montoAhorrado < 0) montoAhorrado = 0;
+  }
+
+  // ==========================================
+  // METODOS DE SERIALIZACION PARA SQLITE
+  // ==========================================
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'titulo': titulo,
+      'montoObjetivo': montoObjetivo,
+      'montoAhorrado': montoAhorrado,
+      'fechaObjetivo': fechaObjetivo?.toIso8601String(),
+      'iconoCodePoint': icono.codePoint,
+      'colorValue': color.toARGB32(),
+      'categoria': categoria,
+      'notas': notas,
+    };
+  }
+
+  factory MetaModelo.fromMap(Map<String, dynamic> map) {
+    return MetaModelo(
+      id: map['id'] as String,
+      titulo: map['titulo'] as String,
+      montoObjetivo: (map['montoObjetivo'] as num).toDouble(),
+      montoAhorrado: (map['montoAhorrado'] as num).toDouble(),
+      fechaObjetivo: map['fechaObjetivo'] != null
+          ? DateTime.parse(map['fechaObjetivo'] as String)
+          : null,
+      icono: IconData(
+        map['iconoCodePoint'] as int? ?? Icons.flag_rounded.codePoint,
+        fontFamily: 'MaterialIcons',
+      ),
+      color: map['colorValue'] != null
+          ? Color(map['colorValue'] as int)
+          : const Color(0xFFEF6C00),
+      categoria: map['categoria'] as String? ?? 'General',
+      notas: map['notas'] as String?,
+    );
   }
 }

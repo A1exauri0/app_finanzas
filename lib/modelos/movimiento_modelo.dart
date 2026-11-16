@@ -46,4 +46,46 @@ class MovimientoModelo {
     this.idTarjetaUtilizada,
     this.nombreTarjetaUtilizada,
   });
+
+  // ==========================================
+  // METODOS DE SERIALIZACION PARA SQLITE
+  // ==========================================
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'titulo': titulo,
+      'monto': monto,
+      'fecha': fecha.toIso8601String(),
+      'tipo': tipo.name,
+      'iconoCodePoint': icono.codePoint,
+      'categoria': categoria,
+      'idDeudaAsociada': idDeudaAsociada,
+      'nombreDeudorAsociado': nombreDeudorAsociado,
+      'pagadoConTarjeta': pagadoConTarjeta ? 1 : 0,
+      'idTarjetaUtilizada': idTarjetaUtilizada,
+      'nombreTarjetaUtilizada': nombreTarjetaUtilizada,
+    };
+  }
+
+  factory MovimientoModelo.fromMap(Map<String, dynamic> map) {
+    return MovimientoModelo(
+      id: map['id'] as String,
+      titulo: map['titulo'] as String,
+      monto: (map['monto'] as num).toDouble(),
+      fecha: DateTime.parse(map['fecha'] as String),
+      tipo: (map['tipo'] as String) == 'ingreso'
+          ? TipoMovimiento.ingreso
+          : TipoMovimiento.gasto,
+      icono: IconData(
+        map['iconoCodePoint'] as int? ?? Icons.receipt_long_rounded.codePoint,
+        fontFamily: 'MaterialIcons',
+      ),
+      categoria: map['categoria'] as String,
+      idDeudaAsociada: map['idDeudaAsociada'] as String?,
+      nombreDeudorAsociado: map['nombreDeudorAsociado'] as String?,
+      pagadoConTarjeta: (map['pagadoConTarjeta'] as int? ?? 0) == 1,
+      idTarjetaUtilizada: map['idTarjetaUtilizada'] as String?,
+      nombreTarjetaUtilizada: map['nombreTarjetaUtilizada'] as String?,
+    );
+  }
 }
