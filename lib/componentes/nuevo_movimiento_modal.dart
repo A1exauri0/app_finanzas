@@ -12,17 +12,20 @@ import '../constantes/colores_app.dart';
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
+import '../modelos/deuda_modelo.dart';
 
 // ==========================================
 // COMPONENTE VISUAL: MODAL PARA NUEVO MOVIMIENTO
 // ==========================================
 class NuevoMovimientoModal extends StatefulWidget {
   final TipoMovimiento tipoInicial;
+  final List<DeudaModelo> listaDeudasActivas;
   final Function(MovimientoModelo) alGuardarMovimiento;
 
   const NuevoMovimientoModal({
     super.key,
     required this.tipoInicial,
+    this.listaDeudasActivas = const [],
     required this.alGuardarMovimiento,
   });
 
@@ -41,25 +44,47 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
   // Estados locales del formulario
   late TipoMovimiento _tipoSeleccionado;
   late DateTime _fechaSeleccionada;
-  String _categoriaSeleccionada = 'General';
-  IconData _iconoSeleccionado = Icons.attach_money_rounded;
+  late String _categoriaSeleccionada;
+  late IconData _iconoSeleccionado;
 
-  // Lista de categorías disponibles según el tipo
-  final List<Map<String, dynamic>> _categoriasDisponibles = [
+  // Estado para vincular cobro de deuda
+  String? _deudaSeleccionadaId;
+
+  // Categorías exclusivas para Ingresos
+  static const List<Map<String, dynamic>> _categoriasIngreso = [
     {'nombre': 'Sueldo', 'icono': Icons.account_balance_wallet_rounded},
+    {'nombre': 'Cobro de Deuda', 'icono': Icons.handshake_rounded},
+    {'nombre': 'Ingreso Extra', 'icono': Icons.monetization_on_rounded},
+    {'nombre': 'Ventas', 'icono': Icons.storefront_rounded},
+    {'nombre': 'Inversión', 'icono': Icons.trending_up_rounded},
+    {'nombre': 'Otro Ingreso', 'icono': Icons.add_circle_outline_rounded},
+  ];
+
+  // Categorías exclusivas para Gastos
+  static const List<Map<String, dynamic>> _categoriasGasto = [
     {'nombre': 'Alimentación', 'icono': Icons.shopping_cart_rounded},
     {'nombre': 'Transporte', 'icono': Icons.directions_bus_rounded},
     {'nombre': 'Servicios', 'icono': Icons.wifi_rounded},
     {'nombre': 'Entretenimiento', 'icono': Icons.movie_rounded},
     {'nombre': 'Salud', 'icono': Icons.medical_services_rounded},
-    {'nombre': 'General', 'icono': Icons.category_rounded},
+    {'nombre': 'Educación', 'icono': Icons.school_rounded},
+    {'nombre': 'Otro Gasto', 'icono': Icons.remove_circle_outline_rounded},
   ];
+
+  List<Map<String, dynamic>> get _categoriasActuales =>
+      _tipoSeleccionado == TipoMovimiento.ingreso
+          ? _categoriasIngreso
+          : _categoriasGasto;
 
   @override
   void initState() {
     super.initState();
     _tipoSeleccionado = widget.tipoInicial;
     _fechaSeleccionada = DateTime.now();
+
+    final categoriasIniciales = _categoriasActuales;
+    _categoriaSeleccionada = categoriasIniciales.first['nombre'] as String;
+    _iconoSeleccionado = categoriasIniciales.first['icono'] as IconData;
   }
 
   @override
@@ -69,11 +94,32 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
     super.dispose();
   }
 
+  // Cambio de tipo (Ingreso / Gasto) y actualización de categorías
+  void _cambiarTipoMovimiento(TipoMovimiento nuevoTipo) {
+    setState(() {
+      _tipoSeleccionado = nuevoTipo;
+      final nuevasCategorias = _categoriasActuales;
+      _categoriaSeleccionada = nuevasCategorias.first['nombre'] as String;
+      _iconoSeleccionado = nuevasCategorias.first['icono'] as IconData;
+      _deudaSeleccionadaId = null;
+    });
+  }
+
   // Método para guardar y emitir el nuevo movimiento
   void _guardarFormulario() {
     if (_formularioClave.currentState?.validate() ?? false) {
       final double? monto = double.tryParse(_montoControlador.text.replaceAll(',', ''));
       if (monto == null || monto <= 0) return;
+
+      String? nombreDeudor;
+      if (_tipoSeleccionado == TipoMovimiento.ingreso &&
+          _categoriaSeleccionada == 'Cobro de Deuda' &&
+          _deudaSeleccionadaId != null) {
+        final deuda = widget.listaDeudasActivas.firstWhere(
+          (d) => d.id == _deudaSeleccionadaId,
+        );
+        nombreDeudor = deuda.nombreDeudor;
+      }
 
       final nuevoMovimiento = MovimientoModelo(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -83,6 +129,8 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
         tipo: _tipoSeleccionado,
         icono: _iconoSeleccionado,
         categoria: _categoriaSeleccionada,
+        idDeudaAsociada: _deudaSeleccionadaId,
+        nombreDeudorAsociado: nombreDeudor,
       );
 
       widget.alGuardarMovimiento(nuevoMovimiento);
@@ -122,6 +170,10 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
   Widget build(BuildContext context) {
     final bool esIngreso = _tipoSeleccionado == TipoMovimiento.ingreso;
     final Color colorActivo = esIngreso ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo;
+    final bool esCobroDeuda = esIngreso && _categoriaSeleccionada == 'Cobro de Deuda';
+
+    // Filtramos las deudas que tienen saldo pendiente
+    final deudasPendientes = widget.listaDeudasActivas.where((d) => !d.estaSaldada).toList();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -178,9 +230,7 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                 ],
                 selected: {_tipoSeleccionado},
                 onSelectionChanged: (nuevaSeleccion) {
-                  setState(() {
-                    _tipoSeleccionado = nuevaSeleccion.first;
-                  });
+                  _cambiarTipoMovimiento(nuevaSeleccion.first);
                 },
               ),
               const SizedBox(height: 20),
@@ -203,8 +253,9 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   if (valor == null || valor.trim().isEmpty) {
                     return 'Ingresa un monto válido';
                   }
-                  if (double.tryParse(valor.replaceAll(',', '')) == null) {
-                    return 'Formato numérico incorrecto';
+                  final montoParsed = double.tryParse(valor.replaceAll(',', ''));
+                  if (montoParsed == null || montoParsed <= 0) {
+                    return 'Ingresa un número positivo mayor a 0';
                   }
                   return null;
                 },
@@ -229,15 +280,16 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
               ),
               const SizedBox(height: 16),
 
-              // Selector de Categoría
+              // Selector de Categoría (Dinámico según Ingreso o Gasto)
               DropdownButtonFormField<String>(
+                key: ValueKey('categoria_$_tipoSeleccionado'),
                 initialValue: _categoriaSeleccionada,
                 decoration: InputDecoration(
-                  labelText: 'Categoría',
+                  labelText: 'Categoría de ${esIngreso ? "Ingreso" : "Gasto"}',
                   prefixIcon: Icon(_iconoSeleccionado, color: colorActivo),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                items: _categoriasDisponibles.map((cat) {
+                items: _categoriasActuales.map((cat) {
                   return DropdownMenuItem<String>(
                     value: cat['nombre'] as String,
                     child: Row(
@@ -253,7 +305,7 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   if (nuevaCategoria != null) {
                     setState(() {
                       _categoriaSeleccionada = nuevaCategoria;
-                      final encontrada = _categoriasDisponibles.firstWhere(
+                      final encontrada = _categoriasActuales.firstWhere(
                         (elem) => elem['nombre'] == nuevaCategoria,
                         orElse: () => {'icono': Icons.category_rounded},
                       );
@@ -263,6 +315,65 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                 },
               ),
               const SizedBox(height: 16),
+
+              // Sección condicional: Si es Cobro de Deuda, seleccionar de qué deudor se descuenta
+              if (esCobroDeuda) ...[
+                if (deudasPendientes.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.amber.shade300),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.orange),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No tienes personas con deudas pendientes registradas.',
+                            style: TextStyle(fontSize: 13, color: Colors.brown),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  DropdownButtonFormField<String>(
+                    initialValue: _deudaSeleccionadaId,
+                    decoration: InputDecoration(
+                      labelText: '¿Quién te está pagando?',
+                      prefixIcon: const Icon(Icons.person_rounded, color: ColoresApp.ingresoVerde),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      helperText: 'El monto ingresado se restará automáticamente de su saldo.',
+                    ),
+                    items: deudasPendientes.map((deuda) {
+                      return DropdownMenuItem<String>(
+                        value: deuda.id,
+                        child: Text(
+                          '${deuda.nombreDeudor} (Debe: \$${deuda.montoPendiente.toStringAsFixed(2)})',
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (nuevaDeudaId) {
+                      setState(() {
+                        _deudaSeleccionadaId = nuevaDeudaId;
+                        if (_conceptoControlador.text.isEmpty && nuevaDeudaId != null) {
+                          final deuda = deudasPendientes.firstWhere((d) => d.id == nuevaDeudaId);
+                          _conceptoControlador.text = 'Abono de ${deuda.nombreDeudor}';
+                        }
+                      });
+                    },
+                    validator: (valor) {
+                      if (valor == null) {
+                        return 'Selecciona de qué deuda se descontará';
+                      }
+                      return null;
+                    },
+                  ),
+                const SizedBox(height: 16),
+              ],
 
               // Botón de Selector de Fecha
               OutlinedButton.icon(
