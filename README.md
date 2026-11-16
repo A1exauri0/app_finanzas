@@ -1,20 +1,23 @@
 # AppFinanzas 💰
 
-Aplicación desarrollada en **Flutter** para el control integral de finanzas personales de forma **100% local**: gastos, ingresos, metas de compra y portafolio de inversiones.
+Aplicación desarrollada en **Flutter** para el control integral de finanzas personales de forma **100% local**: gastos, ingresos, metas de compra, deudas y tarjetas de crédito.
 
 ---
 
 ## 🚀 Características Actuales
 
 - **Resumen Financiero (Dashboard):** Visualización del balance disponible acumulado, ingresos y egresos mensuales.
-- **Acciones Rápidas:** Accesos directos para registrar ingresos, gastos, metas e inversiones.
-- **Historial Reciente:** Listado visual de las últimas transacciones registradas.
-- **Navegación Intuitiva:** Barra inferior (Material 3 NavigationBar) dividida en 4 módulos:
-  - 🏠 **Inicio:** Vista general y métricas clave.
-  - 🧾 **Movimientos:** Control detallado de flujo de caja (ingresos vs gastos).
-  - 🎯 **Metas:** Planificación y seguimiento a objetivos de compra.
-  - 📈 **Inversiones:** Registro de activos y rendimientos.
-- **Diseño Moderno:** Interfaz limpia basada en Material 3, adaptable a Android y Windows Desktop.
+- **Botón Flotante Central (+):** Acceso rápido e intuitivo en el centro de la barra inferior para registrar transacciones y pagos al instante.
+- **Control Integral de Deudas y Créditos:**
+  - 🤝 **Me Deben:** Préstamos otorgados a terceros con seguimiento de cobros y deducción automática del saldo pendiente.
+  - 💳 **Debo (Pasivos):** Deudas personales por pagar con control de saldo liquidado.
+  - 🏦 **Tarjetas de Crédito:** Registro de saldo a pagar, límites de crédito, días de corte y recordatorios de pago para evitar intereses.
+- **Acciones Rápidas:** Registro directo de ingresos, gastos y abonos a tarjetas.
+- **Navegación Intuitiva:** Barra inferior dividida en 4 módulos clave con botón central integrado:
+  - 🏠 **Inicio:** Vista general y métricas de balance.
+  - 🧾 **Movimientos:** Historial y detalle de entradas/salidas.
+  - 🎯 **Metas:** Planificación y ahorro para compras.
+  - 💳 **Deudas:** Gestión de cuentas por cobrar, cuentas por pagar y tarjetas.
 
 ---
 
@@ -25,10 +28,10 @@ El código fuente sigue una arquitectura modular en `lib/`:
 ```text
 lib/
 ├── constantes/     # Paleta de colores y estilos visuales (ColoresApp)
-├── modelos/        # Modelos de datos de la aplicación (MovimientoModelo)
-├── componentes/    # Widgets visuales reutilizables (BalanceCard, MovimientoItemTile)
-├── pantallas/      # Vistas completas y barra de navegación principal
-└── main.dart       # Punto de entrada y configuración del tema
+├── modelos/        # MovimientoModelo, DeudaModelo (meDeben, debo, tarjetaCredito)
+├── componentes/    # BalanceCard, MovimientoItemTile, DeudasResumenCard, NuevoMovimientoModal, NuevaDeudaModal
+├── pantallas/      # InicioScreen, MovimientosScreen, MetasScreen, DeudasScreen, NavegacionPrincipalScreen
+└── main.dart       # Configuración y punto de entrada
 ```
 
 ---
