@@ -18,6 +18,7 @@ import '../modelos/deuda_modelo.dart';
 // ==========================================
 import '../componentes/nueva_deuda_modal.dart';
 import '../componentes/editar_tarjeta_modal.dart';
+import '../componentes/editar_deuda_persona_modal.dart';
 
 // ==========================================
 // PANTALLA: CONTROL DE DEUDAS Y TARJETAS
@@ -26,6 +27,8 @@ class DeudasScreen extends StatefulWidget {
   final List<DeudaModelo> listaDeudas;
   final Function(DeudaModelo) alAgregarDeuda;
   final Function(DeudaModelo) alActualizarTarjeta;
+  final Function(DeudaModelo) alActualizarDeudaPersona;
+  final Function(String idDeuda) alEliminarDeuda;
   final Function(String idDeuda, double montoAbono) alAbonarDeuda;
   final Function(String idTarjeta, int nuevoDiaCorte) alEditarDiaCorte;
   final Function(String idDeuda, String concepto, double monto, DateTime fecha) alAcumularPrestamo;
@@ -35,6 +38,8 @@ class DeudasScreen extends StatefulWidget {
     required this.listaDeudas,
     required this.alAgregarDeuda,
     required this.alActualizarTarjeta,
+    required this.alActualizarDeudaPersona,
+    required this.alEliminarDeuda,
     required this.alAbonarDeuda,
     required this.alEditarDiaCorte,
     required this.alAcumularPrestamo,
@@ -51,7 +56,6 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _tabControlador = TabController(length: 3, vsync: this);
-    // Listener para reconstruir y cambiar dinámicamente el botón de registro
     _tabControlador.addListener(() {
       if (!_tabControlador.indexIsChanging) {
         setState(() {});
@@ -92,7 +96,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     );
   }
 
-  // Abrir modal completo para editar parámetros de la tarjeta
+  // Modal para editar tarjeta de crédito
   void _mostrarModalEditarTarjeta(DeudaModelo tarjeta) {
     showModalBottomSheet(
       context: context,
@@ -104,6 +108,58 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
       builder: (ctx) => EditarTarjetaModal(
         tarjeta: tarjeta,
         alGuardarCambios: widget.alActualizarTarjeta,
+      ),
+    );
+  }
+
+  // Modal para editar persona o deuda de tercero
+  void _mostrarModalEditarPersona(DeudaModelo deuda) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => EditarDeudaPersonaModal(
+        deuda: deuda,
+        alGuardarCambios: widget.alActualizarDeudaPersona,
+      ),
+    );
+  }
+
+  // Diálogo para confirmar eliminación de tarjeta o deuda
+  void _confirmarEliminar(DeudaModelo deuda) {
+    final bool esTarjeta = deuda.tipoDeuda == TipoDeuda.tarjetaCredito;
+    final String etiqueta = esTarjeta ? 'la tarjeta' : 'la deuda de';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('¿Eliminar $etiqueta "${deuda.tituloOEntidad}"?'),
+        content: Text(
+          'Se eliminará este registro ${esTarjeta ? "y todo su historial de pagos" : "y sus partidas acumuladas"}.\nEsta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: ColoresApp.gastoRojo),
+            onPressed: () {
+              widget.alEliminarDeuda(deuda.id);
+              Navigator.of(ctx).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Registro de "${deuda.tituloOEntidad}" eliminado'),
+                  backgroundColor: ColoresApp.gastoRojo,
+                ),
+              );
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
       ),
     );
   }
@@ -188,7 +244,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     );
   }
 
-  // Diálogo para ver el historial de pagos y cargos de una tarjeta de crédito
+  // Diálogo para ver el historial de pagos y compras de una tarjeta de crédito
   void _mostrarHistorialTarjeta(DeudaModelo tarjeta) {
     showDialog(
       context: context,
@@ -403,18 +459,23 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
             alPulsarEditarCorte: _mostrarDialogoEditarCorte,
             alPulsarEditarCompleto: _mostrarModalEditarTarjeta,
             alPulsarVerHistorial: _mostrarHistorialTarjeta,
+            alPulsarEliminar: _confirmarEliminar,
           ),
           _ListaDeudasVista(
             lista: meDeben,
             tipo: TipoDeuda.meDeben,
             alPulsarAbonar: _mostrarDialogoAbonar,
             alPulsarVerHistorial: _mostrarHistorialPersona,
+            alPulsarEditar: _mostrarModalEditarPersona,
+            alPulsarEliminar: _confirmarEliminar,
           ),
           _ListaDeudasVista(
             lista: debo,
             tipo: TipoDeuda.debo,
             alPulsarAbonar: _mostrarDialogoAbonar,
             alPulsarVerHistorial: _mostrarHistorialPersona,
+            alPulsarEditar: _mostrarModalEditarPersona,
+            alPulsarEliminar: _confirmarEliminar,
           ),
         ],
       ),
@@ -437,6 +498,7 @@ class _ListaTarjetasVista extends StatelessWidget {
   final Function(DeudaModelo) alPulsarEditarCorte;
   final Function(DeudaModelo) alPulsarEditarCompleto;
   final Function(DeudaModelo) alPulsarVerHistorial;
+  final Function(DeudaModelo) alPulsarEliminar;
 
   const _ListaTarjetasVista({
     required this.tarjetas,
@@ -444,6 +506,7 @@ class _ListaTarjetasVista extends StatelessWidget {
     required this.alPulsarEditarCorte,
     required this.alPulsarEditarCompleto,
     required this.alPulsarVerHistorial,
+    required this.alPulsarEliminar,
   });
 
   @override
@@ -495,7 +558,7 @@ class _ListaTarjetasVista extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Fila superior: Nombre, botones de acción y chip de corte
+              // Fila superior: Nombre, chip de corte y menú de 3 puntos
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -512,48 +575,86 @@ class _ListaTarjetasVista extends StatelessWidget {
                           letterSpacing: 0.5,
                         ),
                       ),
-                      // Botón para ver historial de pagos de la tarjeta
-                      IconButton(
-                        icon: const Icon(Icons.history_rounded, color: Colors.white70, size: 22),
-                        tooltip: 'Historial de pagos y compras',
-                        onPressed: () => alPulsarVerHistorial(tarjeta),
-                      ),
-                      // Botón para editar tarjeta completa
-                      IconButton(
-                        icon: const Icon(Icons.tune_rounded, color: Colors.white70, size: 20),
-                        tooltip: 'Editar límites y parámetros',
-                        onPressed: () => alPulsarEditarCompleto(tarjeta),
-                      ),
                     ],
                   ),
-                  // Chip interactivo para ver y modificar el día de corte
-                  InkWell(
-                    onTap: () => alPulsarEditarCorte(tarjeta),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
+                  Row(
+                    children: [
+                      // Chip interactivo para ver y modificar el día de corte
+                      InkWell(
+                        onTap: () => alPulsarEditarCorte(tarjeta),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white30),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white30),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit_calendar_rounded, size: 14, color: Colors.white),
+                              const SizedBox(width: 5),
+                              Text(
+                                tarjeta.diaCorte != null
+                                    ? 'Corte: Día ${tarjeta.diaCorte}'
+                                    : 'Definir Corte',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.edit_calendar_rounded, size: 14, color: Colors.white),
-                          const SizedBox(width: 5),
-                          Text(
-                            tarjeta.diaCorte != null
-                                ? 'Corte: Día ${tarjeta.diaCorte}'
-                                : 'Definir Corte',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                      // Menú desplegable con 3 puntos (Historial, Editar, Eliminar)
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert_rounded, color: Colors.white, size: 22),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        onSelected: (valor) {
+                          if (valor == 'historial') {
+                            alPulsarVerHistorial(tarjeta);
+                          } else if (valor == 'editar') {
+                            alPulsarEditarCompleto(tarjeta);
+                          } else if (valor == 'eliminar') {
+                            alPulsarEliminar(tarjeta);
+                          }
+                        },
+                        itemBuilder: (ctx) => [
+                          const PopupMenuItem<String>(
+                            value: 'historial',
+                            child: Row(
+                              children: [
+                                Icon(Icons.history_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                                SizedBox(width: 10),
+                                Text('Ver Historial de Pagos'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'editar',
+                            child: Row(
+                              children: [
+                                Icon(Icons.tune_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                                SizedBox(width: 10),
+                                Text('Editar Parámetros y Límites'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'eliminar',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline_rounded, color: ColoresApp.gastoRojo, size: 20),
+                                SizedBox(width: 10),
+                                Text('Eliminar Tarjeta', style: TextStyle(color: ColoresApp.gastoRojo)),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -669,12 +770,16 @@ class _ListaDeudasVista extends StatelessWidget {
   final TipoDeuda tipo;
   final Function(DeudaModelo) alPulsarAbonar;
   final Function(DeudaModelo) alPulsarVerHistorial;
+  final Function(DeudaModelo) alPulsarEditar;
+  final Function(DeudaModelo) alPulsarEliminar;
 
   const _ListaDeudasVista({
     required this.lista,
     required this.tipo,
     required this.alPulsarAbonar,
     required this.alPulsarVerHistorial,
+    required this.alPulsarEditar,
+    required this.alPulsarEliminar,
   });
 
   @override
@@ -746,10 +851,51 @@ class _ListaDeudasVista extends StatelessWidget {
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.history_rounded, color: ColoresApp.primarioVerde),
-                      tooltip: 'Ver historial de préstamos',
-                      onPressed: () => alPulsarVerHistorial(deuda),
+                    // Menú de 3 puntos (Historial, Editar, Eliminar)
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert_rounded, color: ColoresApp.textoSecundario, size: 22),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      onSelected: (valor) {
+                        if (valor == 'historial') {
+                          alPulsarVerHistorial(deuda);
+                        } else if (valor == 'editar') {
+                          alPulsarEditar(deuda);
+                        } else if (valor == 'eliminar') {
+                          alPulsarEliminar(deuda);
+                        }
+                      },
+                      itemBuilder: (ctx) => [
+                        const PopupMenuItem<String>(
+                          value: 'historial',
+                          child: Row(
+                            children: [
+                              Icon(Icons.history_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                              SizedBox(width: 10),
+                              Text('Ver Historial Completo'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'editar',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_note_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                              SizedBox(width: 10),
+                              Text('Editar Registro'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'eliminar',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline_rounded, color: ColoresApp.gastoRojo, size: 20),
+                              SizedBox(width: 10),
+                              Text('Eliminar Registro', style: TextStyle(color: ColoresApp.gastoRojo)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -29,12 +29,14 @@ class InicioScreen extends StatelessWidget {
   final List<MovimientoModelo> listaMovimientos;
   final List<DeudaModelo> listaDeudas;
   final Function(MovimientoModelo) alRegistrarMovimiento;
+  final VoidCallback? alPulsarNuevaMeta;
 
   const InicioScreen({
     super.key,
     required this.listaMovimientos,
     required this.listaDeudas,
     required this.alRegistrarMovimiento,
+    this.alPulsarNuevaMeta,
   });
 
   // Métodos de cálculo dinámico para el balance
@@ -162,7 +164,7 @@ class InicioScreen extends StatelessWidget {
                     icono: Icons.flag_rounded,
                     etiqueta: 'Meta',
                     colorFondo: ColoresApp.metaNaranja,
-                    alPresionar: () {},
+                    alPresionar: alPulsarNuevaMeta ?? () {},
                   ),
                 ],
               ),

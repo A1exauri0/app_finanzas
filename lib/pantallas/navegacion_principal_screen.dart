@@ -13,11 +13,13 @@ import '../constantes/colores_app.dart';
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
+import '../modelos/meta_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/nuevo_movimiento_modal.dart';
+import '../componentes/nueva_meta_modal.dart';
 
 // ==========================================
 // IMPORTACIONES DE PANTALLAS
@@ -40,6 +42,39 @@ class NavegacionPrincipalScreen extends StatefulWidget {
 class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Índice actual de la pantalla (0: Inicio, 1: Movimientos, 2: Metas, 3: Deudas)
   int _indicePestanaActual = 0;
+
+  // Estado compartido de Metas y Objetivos de Compra
+  final List<MetaModelo> _listaMetas = [
+    MetaModelo(
+      id: 'meta-1',
+      titulo: 'Laptop de Trabajo',
+      montoObjetivo: 24000.00,
+      montoAhorrado: 15500.00,
+      fechaObjetivo: DateTime.now().add(const Duration(days: 90)),
+      categoria: 'Tecnología',
+      icono: Icons.devices_rounded,
+      color: const Color(0xFF1976D2),
+    ),
+    MetaModelo(
+      id: 'meta-2',
+      titulo: 'Vacaciones a la Playa',
+      montoObjetivo: 14000.00,
+      montoAhorrado: 7000.00,
+      fechaObjetivo: DateTime.now().add(const Duration(days: 120)),
+      categoria: 'Viajes',
+      icono: Icons.flight_takeoff_rounded,
+      color: const Color(0xFF0097A7),
+    ),
+    MetaModelo(
+      id: 'meta-3',
+      titulo: 'Fondo de Emergencia',
+      montoObjetivo: 20000.00,
+      montoAhorrado: 20000.00, // Cumplida
+      categoria: 'Fondo de Emergencia',
+      icono: Icons.shield_rounded,
+      color: const Color(0xFF2E7D32),
+    ),
+  ];
 
   // Estado compartido de deudas y tarjetas con historial de pagos y compras
   final List<DeudaModelo> _listaDeudas = [
@@ -262,6 +297,46 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     );
   }
 
+  // Registrar una nueva meta
+  void _agregarMeta(MetaModelo nuevaMeta) {
+    setState(() {
+      _listaMetas.add(nuevaMeta);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Meta "${nuevaMeta.titulo}" creada con éxito'),
+        backgroundColor: nuevaMeta.color,
+      ),
+    );
+  }
+
+  // Abonar ahorro a una meta
+  void _abonarAMeta(String idMeta, double montoAbono) {
+    setState(() {
+      final index = _listaMetas.indexWhere((m) => m.id == idMeta);
+      if (index != -1) {
+        _listaMetas[index].abonar(montoAbono);
+      }
+    });
+  }
+
+  // Actualizar una meta editada
+  void _actualizarMeta(MetaModelo metaActualizada) {
+    setState(() {
+      final index = _listaMetas.indexWhere((m) => m.id == metaActualizada.id);
+      if (index != -1) {
+        _listaMetas[index] = metaActualizada;
+      }
+    });
+  }
+
+  // Eliminar una meta
+  void _eliminarMeta(String idMeta) {
+    setState(() {
+      _listaMetas.removeWhere((m) => m.id == idMeta);
+    });
+  }
+
   // Registrar una nueva deuda o tarjeta
   void _agregarDeuda(DeudaModelo nuevaDeuda) {
     setState(() {
@@ -289,6 +364,29 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         backgroundColor: ColoresApp.primarioVerde,
       ),
     );
+  }
+
+  // Actualizar una deuda personal
+  void _actualizarDeudaPersona(DeudaModelo deudaActualizada) {
+    setState(() {
+      final index = _listaDeudas.indexWhere((d) => d.id == deudaActualizada.id);
+      if (index != -1) {
+        _listaDeudas[index] = deudaActualizada;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Registro de "${deudaActualizada.tituloOEntidad}" actualizado'),
+        backgroundColor: ColoresApp.primarioVerde,
+      ),
+    );
+  }
+
+  // Eliminar una deuda o tarjeta
+  void _eliminarDeuda(String idDeuda) {
+    setState(() {
+      _listaDeudas.removeWhere((d) => d.id == idDeuda);
+    });
   }
 
   // Acumular un nuevo préstamo a una persona existente
@@ -329,7 +427,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       final bool esMeDeben = deuda.tipoDeuda == TipoDeuda.meDeben;
       final bool esTarjeta = deuda.tipoDeuda == TipoDeuda.tarjetaCredito;
 
-      // Creamos la transacción en el historial
       final transaccion = MovimientoModelo(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         titulo: esTarjeta
@@ -369,6 +466,21 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     );
   }
 
+  // Abrir modal de nueva meta desde Inicio
+  void _abrirModalNuevaMeta() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => NuevaMetaModal(
+        alGuardarMeta: _agregarMeta,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Lista de pantallas con el estado compartido
@@ -377,13 +489,22 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         listaMovimientos: _listaMovimientos,
         listaDeudas: _listaDeudas,
         alRegistrarMovimiento: _agregarMovimiento,
+        alPulsarNuevaMeta: _abrirModalNuevaMeta,
       ),
       const MovimientosScreen(),
-      const MetasScreen(),
+      MetasScreen(
+        listaMetas: _listaMetas,
+        alCrearMeta: _agregarMeta,
+        alActualizarMeta: _actualizarMeta,
+        alEliminarMeta: _eliminarMeta,
+        alAbonarMeta: _abonarAMeta,
+      ),
       DeudasScreen(
         listaDeudas: _listaDeudas,
         alAgregarDeuda: _agregarDeuda,
         alActualizarTarjeta: _actualizarTarjeta,
+        alActualizarDeudaPersona: _actualizarDeudaPersona,
+        alEliminarDeuda: _eliminarDeuda,
         alAbonarDeuda: _abonarADeuda,
         alEditarDiaCorte: _actualizarDiaCorteTarjeta,
         alAcumularPrestamo: _acumularPrestamo,
