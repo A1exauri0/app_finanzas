@@ -22,6 +22,8 @@ class MovimientoModelo {
   final TipoMovimiento tipo;
   final IconData icono;
   final String categoria;
+  final String? idDeudaAsociada;
+  final String? nombreDeudorAsociado;
 
   MovimientoModelo({
     required this.id,
@@ -31,5 +33,7 @@ class MovimientoModelo {
     required this.tipo,
     required this.icono,
     required this.categoria,
+    this.idDeudaAsociada,
+    this.nombreDeudorAsociado,
   });
 }
