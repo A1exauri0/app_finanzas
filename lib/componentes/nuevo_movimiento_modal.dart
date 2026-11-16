@@ -28,12 +28,14 @@ enum MetodoPagoGasto {
 class NuevoMovimientoModal extends StatefulWidget {
   final TipoMovimiento tipoInicial;
   final List<DeudaModelo> listaDeudasActivas;
+  final double dineroDisponible;
   final Function(MovimientoModelo) alGuardarMovimiento;
 
   const NuevoMovimientoModal({
     super.key,
     required this.tipoInicial,
     this.listaDeudasActivas = const [],
+    this.dineroDisponible = 0.0,
     required this.alGuardarMovimiento,
   });
 
@@ -94,6 +96,11 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
     _tipoSeleccionado = widget.tipoInicial;
     _fechaSeleccionada = DateTime.now();
 
+    // Listener para recalcular alertas de saldo y crédito en tiempo real
+    _montoControlador.addListener(() {
+      setState(() {});
+    });
+
     final categoriasIniciales = _categoriasActuales;
     _categoriaSeleccionada = categoriasIniciales.first['nombre'] as String;
     _iconoSeleccionado = categoriasIniciales.first['icono'] as IconData;
@@ -105,6 +112,39 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
     if (tarjetasCredito.isNotEmpty) {
       _tarjetaGastoSeleccionadaId = tarjetasCredito.first.id;
     }
+  }
+
+  // Getters para verificación de sobregiro
+  double get _montoIngresadoActual {
+    final texto = _montoControlador.text.replaceAll(',', '').trim();
+    return double.tryParse(texto) ?? 0.0;
+  }
+
+  DeudaModelo? get _tarjetaSeleccionadaActual {
+    if (_tarjetaGastoSeleccionadaId == null) return null;
+    try {
+      return widget.listaDeudasActivas.firstWhere(
+        (d) => d.id == _tarjetaGastoSeleccionadaId,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get _estaSobregiradoEfectivo {
+    if (_tipoSeleccionado != TipoMovimiento.gasto) return false;
+    if (_metodoPago == MetodoPagoGasto.tarjetaCredito) return false;
+    if (_montoIngresadoActual <= 0) return false;
+    return _montoIngresadoActual > widget.dineroDisponible;
+  }
+
+  bool get _estaSobregiradoTarjeta {
+    if (_tipoSeleccionado != TipoMovimiento.gasto) return false;
+    if (_metodoPago != MetodoPagoGasto.tarjetaCredito) return false;
+    if (_montoIngresadoActual <= 0) return false;
+    final tarjeta = _tarjetaSeleccionadaActual;
+    if (tarjeta == null) return false;
+    return _montoIngresadoActual > tarjeta.creditoDisponible;
   }
 
   @override
@@ -131,44 +171,104 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
       final double? monto = double.tryParse(_montoControlador.text.replaceAll(',', ''));
       if (monto == null || monto <= 0) return;
 
-      final bool esGastoConTarjeta = _tipoSeleccionado == TipoMovimiento.gasto &&
-          _categoriaSeleccionada != 'Pago de Deuda / Tarjeta' &&
-          _metodoPago == MetodoPagoGasto.tarjetaCredito;
-
-      String? nombreDeudorOTarjeta;
-      if (_deudaSeleccionadaId != null) {
-        final deuda = widget.listaDeudasActivas.firstWhere(
-          (d) => d.id == _deudaSeleccionadaId,
+      // Si hay sobregiro en efectivo o tarjeta, pedimos confirmación de advertencia
+      if (_estaSobregiradoEfectivo) {
+        _mostrarDialogoConfirmacionSobregiro(
+          titulo: '⚠️ Advertencia de Sobregiro en Efectivo',
+          mensaje:
+              'Estás intentando gastar \$${monto.toStringAsFixed(2)}, pero tu dinero disponible es de \$${widget.dineroDisponible.toStringAsFixed(2)}.\n\nQuedarás sobregirado por \$${(monto - widget.dineroDisponible).toStringAsFixed(2)}.\n\n¿Deseas registrar este gasto de todos modos?',
+          alConfirmar: () => _procesarGuardado(monto),
         );
-        nombreDeudorOTarjeta = deuda.tituloOEntidad;
+        return;
       }
 
-      String? nombreTarjetaGasto;
-      if (esGastoConTarjeta && _tarjetaGastoSeleccionadaId != null) {
-        final tarjeta = widget.listaDeudasActivas.firstWhere(
-          (d) => d.id == _tarjetaGastoSeleccionadaId,
+      if (_estaSobregiradoTarjeta) {
+        final tarjeta = _tarjetaSeleccionadaActual!;
+        _mostrarDialogoConfirmacionSobregiro(
+          titulo: '⚠️ Límite de Tarjeta Excedido',
+          mensaje:
+              'El gasto de \$${monto.toStringAsFixed(2)} excede el crédito disponible de ${tarjeta.tituloOEntidad} (\$${tarjeta.creditoDisponible.toStringAsFixed(2)}).\n\n¿Deseas forzar el registro de este gasto en la tarjeta?',
+          alConfirmar: () => _procesarGuardado(monto),
         );
-        nombreTarjetaGasto = tarjeta.tituloOEntidad;
+        return;
       }
 
-      final nuevoMovimiento = MovimientoModelo(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        titulo: _conceptoControlador.text.trim(),
-        monto: monto,
-        fecha: _fechaSeleccionada,
-        tipo: _tipoSeleccionado,
-        icono: esGastoConTarjeta ? Icons.credit_card_rounded : _iconoSeleccionado,
-        categoria: _categoriaSeleccionada,
-        idDeudaAsociada: _deudaSeleccionadaId,
-        nombreDeudorAsociado: nombreDeudorOTarjeta,
-        pagadoConTarjeta: esGastoConTarjeta,
-        idTarjetaUtilizada: esGastoConTarjeta ? _tarjetaGastoSeleccionadaId : null,
-        nombreTarjetaUtilizada: nombreTarjetaGasto,
-      );
-
-      widget.alGuardarMovimiento(nuevoMovimiento);
-      Navigator.of(context).pop();
+      _procesarGuardado(monto);
     }
+  }
+
+  // Diálogo modal de advertencia al intentar gastar de más
+  void _mostrarDialogoConfirmacionSobregiro({
+    required String titulo,
+    required String mensaje,
+    required VoidCallback alConfirmar,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+        content: Text(mensaje, style: const TextStyle(fontSize: 14)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar y Corregir'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColoresApp.gastoRojo,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              alConfirmar();
+            },
+            child: const Text('Registrar de Todas Formas', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Procesamiento final y emisión
+  void _procesarGuardado(double monto) {
+    final bool esGastoConTarjeta = _tipoSeleccionado == TipoMovimiento.gasto &&
+        _categoriaSeleccionada != 'Pago de Deuda / Tarjeta' &&
+        _metodoPago == MetodoPagoGasto.tarjetaCredito;
+
+    String? nombreDeudorOTarjeta;
+    if (_deudaSeleccionadaId != null) {
+      final deuda = widget.listaDeudasActivas.firstWhere(
+        (d) => d.id == _deudaSeleccionadaId,
+      );
+      nombreDeudorOTarjeta = deuda.tituloOEntidad;
+    }
+
+    String? nombreTarjetaGasto;
+    if (esGastoConTarjeta && _tarjetaGastoSeleccionadaId != null) {
+      final tarjeta = widget.listaDeudasActivas.firstWhere(
+        (d) => d.id == _tarjetaGastoSeleccionadaId,
+      );
+      nombreTarjetaGasto = tarjeta.tituloOEntidad;
+    }
+
+    final nuevoMovimiento = MovimientoModelo(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      titulo: _conceptoControlador.text.trim(),
+      monto: monto,
+      fecha: _fechaSeleccionada,
+      tipo: _tipoSeleccionado,
+      icono: esGastoConTarjeta ? Icons.credit_card_rounded : _iconoSeleccionado,
+      categoria: _categoriaSeleccionada,
+      idDeudaAsociada: _deudaSeleccionadaId,
+      nombreDeudorAsociado: nombreDeudorOTarjeta,
+      pagadoConTarjeta: esGastoConTarjeta,
+      idTarjetaUtilizada: esGastoConTarjeta ? _tarjetaGastoSeleccionadaId : null,
+      nombreTarjetaUtilizada: nombreTarjetaGasto,
+    );
+
+    widget.alGuardarMovimiento(nuevoMovimiento);
+    Navigator.of(context).pop();
   }
 
   // Método para seleccionar fecha con DatePicker
@@ -384,7 +484,12 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: colorActivo, width: 2),
+                    borderSide: BorderSide(
+                      color: (_estaSobregiradoEfectivo || _estaSobregiradoTarjeta)
+                          ? ColoresApp.gastoRojo
+                          : colorActivo,
+                      width: 2,
+                    ),
                   ),
                 ),
                 validator: (valor) {
@@ -398,6 +503,109 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   return null;
                 },
               ),
+
+              // Indicador de disponibilidad y Alertas de Sobregiro en tiempo real
+              if (!esIngreso) ...[
+                const SizedBox(height: 6),
+                if (_metodoPago != MetodoPagoGasto.tarjetaCredito)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 13,
+                        color: widget.dineroDisponible >= 0
+                            ? ColoresApp.textoSecundario
+                            : ColoresApp.gastoRojo,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Dinero disponible: \$${widget.dineroDisponible.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: widget.dineroDisponible >= 0
+                              ? ColoresApp.textoSecundario
+                              : ColoresApp.gastoRojo,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                // ALERTA VISUAL: Sobregiro en Efectivo
+                if (_estaSobregiradoEfectivo)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: ColoresApp.gastoRojo, width: 1.5),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: ColoresApp.gastoRojo, size: 24),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '¡Gastas más de lo que tienes!',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: ColoresApp.gastoRojo,
+                                ),
+                              ),
+                              Text(
+                                'Dispones de \$${widget.dineroDisponible.toStringAsFixed(2)}. Te sobregirarías por \$${(_montoIngresadoActual - widget.dineroDisponible).toStringAsFixed(2)}.',
+                                style: TextStyle(fontSize: 12, color: Colors.red.shade900),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // ALERTA VISUAL: Límite de Tarjeta Excedido
+                if (_estaSobregiradoTarjeta && _tarjetaSeleccionadaActual != null)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.shade50,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.purple.shade700, width: 1.5),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.credit_card_off_rounded, color: Colors.purple.shade800, size: 24),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '¡Superas el crédito disponible de ${_tarjetaSeleccionadaActual!.tituloOEntidad}!',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: Colors.purple.shade900,
+                                ),
+                              ),
+                              Text(
+                                'Crédito disponible: \$${_tarjetaSeleccionadaActual!.creditoDisponible.toStringAsFixed(2)}. Exceso: \$${(_montoIngresadoActual - _tarjetaSeleccionadaActual!.creditoDisponible).toStringAsFixed(2)}.',
+                                style: TextStyle(fontSize: 12, color: Colors.purple.shade800),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
               const SizedBox(height: 16),
 
               // Campo de Concepto o Descripción

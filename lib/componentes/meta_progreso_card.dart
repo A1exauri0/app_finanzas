@@ -57,113 +57,112 @@ class MetaProgresoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Fila superior: Icono, Título, Categoría y Menú de opciones (Editar/Eliminar)
+          // Fila superior: Icono, Título, Categoría y Menú de opciones (sin desbordamiento)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: (cumplida ? Colors.green : meta.color).withValues(alpha: 0.14),
-                    child: Icon(
-                      cumplida ? Icons.check_circle_rounded : meta.icono,
-                      color: cumplida ? Colors.green.shade700 : meta.color,
-                      size: 26,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        meta.titulo,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresApp.textoPrincipal,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        meta.categoria,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: ColoresApp.textoSecundario,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: (cumplida ? Colors.green : meta.color).withValues(alpha: 0.14),
+                child: Icon(
+                  cumplida ? Icons.check_circle_rounded : meta.icono,
+                  color: cumplida ? Colors.green.shade700 : meta.color,
+                  size: 24,
+                ),
               ),
-              Row(
-                children: [
-                  if (cumplida)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.stars_rounded, size: 14, color: Colors.green.shade800),
-                          const SizedBox(width: 4),
-                          Text(
-                            '¡Lograda!',
-                            style: TextStyle(
-                              color: Colors.green.shade900,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else
+              const SizedBox(width: 12),
+              // Expanded para evitar el RenderFlex overflow
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      '$porcentajeEntero%',
-                      style: TextStyle(
+                      meta.titulo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: meta.color,
+                        color: ColoresApp.textoPrincipal,
                       ),
                     ),
-                  // Menú de opciones: Editar o Eliminar
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert_rounded, color: ColoresApp.textoSecundario, size: 20),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    onSelected: (valor) {
-                      if (valor == 'editar') {
-                        alPulsarEditar(meta);
-                      } else if (valor == 'eliminar') {
-                        alPulsarEliminar(meta);
-                      }
-                    },
-                    itemBuilder: (ctx) => [
-                      const PopupMenuItem<String>(
-                        value: 'editar',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_note_rounded, color: ColoresApp.textoPrincipal, size: 20),
-                            SizedBox(width: 10),
-                            Text('Editar Meta'),
-                          ],
-                        ),
+                    const SizedBox(height: 2),
+                    Text(
+                      meta.categoria,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: ColoresApp.textoSecundario,
+                        fontWeight: FontWeight.w500,
                       ),
-                      const PopupMenuItem<String>(
-                        value: 'eliminar',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline_rounded, color: ColoresApp.gastoRojo, size: 20),
-                            SizedBox(width: 10),
-                            Text('Eliminar Meta', style: TextStyle(color: ColoresApp.gastoRojo)),
-                          ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (cumplida)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.stars_rounded, size: 14, color: Colors.green.shade800),
+                      const SizedBox(width: 4),
+                      Text(
+                        '¡Lograda!',
+                        style: TextStyle(
+                          color: Colors.green.shade900,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
+                  ),
+                )
+              else
+                Text(
+                  '$porcentajeEntero%',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: meta.color,
+                  ),
+                ),
+              // Menú de opciones: Editar o Eliminar
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert_rounded, color: ColoresApp.textoSecundario, size: 20),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onSelected: (valor) {
+                  if (valor == 'editar') {
+                    alPulsarEditar(meta);
+                  } else if (valor == 'eliminar') {
+                    alPulsarEliminar(meta);
+                  }
+                },
+                itemBuilder: (ctx) => [
+                  const PopupMenuItem<String>(
+                    value: 'editar',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_note_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                        SizedBox(width: 10),
+                        Text('Editar Meta'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'eliminar',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline_rounded, color: ColoresApp.gastoRojo, size: 20),
+                        SizedBox(width: 10),
+                        Text('Eliminar Meta', style: TextStyle(color: ColoresApp.gastoRojo)),
+                      ],
+                    ),
                   ),
                 ],
               ),

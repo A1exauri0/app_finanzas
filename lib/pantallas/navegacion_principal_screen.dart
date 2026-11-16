@@ -20,6 +20,7 @@ import '../modelos/meta_modelo.dart';
 // ==========================================
 import '../componentes/nuevo_movimiento_modal.dart';
 import '../componentes/nueva_meta_modal.dart';
+import '../componentes/menu_lateral_drawer.dart';
 
 // ==========================================
 // IMPORTACIONES DE PANTALLAS
@@ -28,6 +29,7 @@ import 'inicio_screen.dart';
 import 'movimientos_screen.dart';
 import 'metas_screen.dart';
 import 'deudas_screen.dart';
+import 'finanzas_screen.dart';
 
 // ==========================================
 // PANTALLA CONTENEDORA: NAVEGACION PRINCIPAL
@@ -40,6 +42,9 @@ class NavegacionPrincipalScreen extends StatefulWidget {
 }
 
 class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
+  // Clave del Scaffold para apertura programática del Drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   // Índice actual de la pantalla (0: Inicio, 1: Movimientos, 2: Metas, 3: Deudas)
   int _indicePestanaActual = 0;
 
@@ -297,6 +302,63 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     );
   }
 
+  // Actualizar un movimiento editado
+  void _actualizarMovimiento(MovimientoModelo movimientoActualizado) {
+    setState(() {
+      final index = _listaMovimientos.indexWhere((m) => m.id == movimientoActualizado.id);
+      if (index != -1) {
+        _listaMovimientos[index] = movimientoActualizado;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Movimiento "${movimientoActualizado.titulo}" actualizado'),
+        backgroundColor: ColoresApp.primarioVerde,
+      ),
+    );
+  }
+
+  // Eliminar un movimiento y revertir impactos financieros vinculados
+  void _eliminarMovimiento(String idMovimiento) {
+    setState(() {
+      final index = _listaMovimientos.indexWhere((m) => m.id == idMovimiento);
+      if (index != -1) {
+        final movEliminado = _listaMovimientos[index];
+
+        // Revertir cargo de tarjeta si correspondía
+        if (movEliminado.pagadoConTarjeta && movEliminado.idTarjetaUtilizada != null) {
+          final tarjetaIndex = _listaDeudas.indexWhere((d) => d.id == movEliminado.idTarjetaUtilizada);
+          if (tarjetaIndex != -1) {
+            final t = _listaDeudas[tarjetaIndex];
+            t.montoPendiente -= movEliminado.monto;
+            if (t.montoPendiente < 0) t.montoPendiente = 0;
+            t.historialPartidas.removeWhere((p) => p.concepto == movEliminado.titulo && p.monto == movEliminado.monto);
+          }
+        }
+
+        // Revertir abono a deuda
+        if (movEliminado.idDeudaAsociada != null) {
+          final deudaIndex = _listaDeudas.indexWhere((d) => d.id == movEliminado.idDeudaAsociada);
+          if (deudaIndex != -1) {
+            final d = _listaDeudas[deudaIndex];
+            d.montoPendiente += movEliminado.monto;
+            d.historialPartidas.removeWhere((p) => p.monto == movEliminado.monto && p.esAbono);
+          }
+        }
+
+        _listaMovimientos.removeAt(index);
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Movimiento eliminado correctamente'),
+        backgroundColor: ColoresApp.gastoRojo,
+      ),
+    );
+  }
+
   // Registrar una nueva meta
   void _agregarMeta(MetaModelo nuevaMeta) {
     setState(() {
@@ -449,6 +511,35 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     }
   }
 
+  // Cálculo de dinero líquido disponible real (Ingresos - Gastos en efectivo - Ahorro en metas)
+  double get _dineroDisponibleReal {
+    final double totalIngresos = _listaMovimientos
+        .where((m) => m.tipo == TipoMovimiento.ingreso)
+        .fold(0.0, (acum, m) => acum + m.monto);
+
+    final double gastosEfectivo = _listaMovimientos
+        .where((m) => m.tipo == TipoMovimiento.gasto && !m.pagadoConTarjeta)
+        .fold(0.0, (acum, m) => acum + m.monto);
+
+    final double totalEnMetas = _listaMetas.fold(0.0, (acum, meta) => acum + meta.montoAhorrado);
+
+    return totalIngresos - gastosEfectivo - totalEnMetas;
+  }
+
+  // Navegar a la pantalla de análisis financiero y gráficas
+  void _abrirPanelFinanzas() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (ctx) => FinanzasScreen(
+          listaMovimientos: _listaMovimientos,
+          listaDeudas: _listaDeudas,
+          listaMetas: _listaMetas,
+        ),
+      ),
+    );
+  }
+
   // Abrir el modal central de nuevo movimiento
   void _abrirModalRegistroCentral() {
     showModalBottomSheet(
@@ -461,6 +552,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       builder: (ctx) => NuevoMovimientoModal(
         tipoInicial: TipoMovimiento.gasto,
         listaDeudasActivas: _listaDeudas,
+        dineroDisponible: _dineroDisponibleReal,
         alGuardarMovimiento: _agregarMovimiento,
       ),
     );
@@ -488,10 +580,19 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       InicioScreen(
         listaMovimientos: _listaMovimientos,
         listaDeudas: _listaDeudas,
+        dineroDisponible: _dineroDisponibleReal,
         alRegistrarMovimiento: _agregarMovimiento,
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
+        alAbrirPanelFinanzas: _abrirPanelFinanzas,
+        alAbrirMenu: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      const MovimientosScreen(),
+      MovimientosScreen(
+        listaMovimientos: _listaMovimientos,
+        listaDeudas: _listaDeudas,
+        alEliminarMovimiento: _eliminarMovimiento,
+        alActualizarMovimiento: _actualizarMovimiento,
+        alPulsarNuevoMovimiento: _abrirModalRegistroCentral,
+      ),
       MetasScreen(
         listaMetas: _listaMetas,
         alCrearMeta: _agregarMeta,
@@ -512,6 +613,14 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     ];
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: MenuLateralDrawer(
+        dineroDisponible: _dineroDisponibleReal,
+        indicePestanaActual: _indicePestanaActual,
+        alSeleccionarPestana: (indice) => setState(() => _indicePestanaActual = indice),
+        alAbrirPanelFinanzas: _abrirPanelFinanzas,
+        alRegistrarMovimiento: _abrirModalRegistroCentral,
+      ),
       body: pantallas[_indicePestanaActual],
       floatingActionButton: FloatingActionButton(
         onPressed: _abrirModalRegistroCentral,

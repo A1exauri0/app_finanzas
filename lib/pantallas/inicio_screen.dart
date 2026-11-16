@@ -20,7 +20,6 @@ import '../modelos/deuda_modelo.dart';
 import '../componentes/balance_card.dart';
 import '../componentes/movimiento_item_tile.dart';
 import '../componentes/nuevo_movimiento_modal.dart';
-import '../componentes/deudas_resumen_card.dart';
 
 // ==========================================
 // PANTALLA PRINCIPAL: INICIO
@@ -28,15 +27,21 @@ import '../componentes/deudas_resumen_card.dart';
 class InicioScreen extends StatelessWidget {
   final List<MovimientoModelo> listaMovimientos;
   final List<DeudaModelo> listaDeudas;
+  final double dineroDisponible;
   final Function(MovimientoModelo) alRegistrarMovimiento;
   final VoidCallback? alPulsarNuevaMeta;
+  final VoidCallback? alAbrirPanelFinanzas;
+  final VoidCallback? alAbrirMenu;
 
   const InicioScreen({
     super.key,
     required this.listaMovimientos,
     required this.listaDeudas,
+    this.dineroDisponible = 0.0,
     required this.alRegistrarMovimiento,
     this.alPulsarNuevaMeta,
+    this.alAbrirPanelFinanzas,
+    this.alAbrirMenu,
   });
 
   // Métodos de cálculo dinámico para el balance
@@ -62,6 +67,7 @@ class InicioScreen extends StatelessWidget {
       builder: (ctx) => NuevoMovimientoModal(
         tipoInicial: tipoInicial,
         listaDeudasActivas: listaDeudas,
+        dineroDisponible: dineroDisponible,
         alGuardarMovimiento: alRegistrarMovimiento,
       ),
     );
@@ -77,55 +83,138 @@ class InicioScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Encabezado con saludo
+              // Encabezado con saludo y botones de acceso al menú y panel de finanzas
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Hola de nuevo 👋',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: ColoresApp.textoSecundario,
-                          fontWeight: FontWeight.w500,
+                  Row(
+                    children: [
+                      if (alAbrirMenu != null) ...[
+                        IconButton(
+                          icon: const Icon(Icons.menu_rounded, color: ColoresApp.primarioVerde),
+                          onPressed: alAbrirMenu,
+                          tooltip: 'Abrir Menú',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Mi Resumen Financiero',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresApp.textoPrincipal,
-                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            'Hola de nuevo 👋',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: ColoresApp.textoSecundario,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Mi Resumen Financiero',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: ColoresApp.textoPrincipal,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  CircleAvatar(
-                    backgroundColor: ColoresApp.primarioVerde.withValues(alpha: 0.1),
-                    child: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: ColoresApp.primarioVerde,
-                    ),
+                  Row(
+                    children: [
+                      if (alAbrirPanelFinanzas != null)
+                        InkWell(
+                          onTap: alAbrirPanelFinanzas,
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: ColoresApp.primarioVerde.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.pie_chart_rounded, size: 18, color: ColoresApp.primarioVerde),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Gráficas',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: ColoresApp.primarioVerde,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
+
+              // Banner interactivo: Dinero Disponible Líquido
+              InkWell(
+                onTap: alAbrirPanelFinanzas,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: dineroDisponible >= 0
+                        ? ColoresApp.primarioVerde.withValues(alpha: 0.08)
+                        : Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: dineroDisponible >= 0
+                          ? ColoresApp.primarioVerde.withValues(alpha: 0.3)
+                          : Colors.red.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        dineroDisponible >= 0 ? Icons.check_circle_rounded : Icons.warning_rounded,
+                        color: dineroDisponible >= 0 ? ColoresApp.primarioVerde : ColoresApp.gastoRojo,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Dinero disponible para gastar hoy:',
+                              style: TextStyle(fontSize: 11, color: ColoresApp.textoSecundario),
+                            ),
+                            Text(
+                              '\$${dineroDisponible.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: dineroDisponible >= 0
+                                    ? ColoresApp.primarioVerde
+                                    : ColoresApp.gastoRojo,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: ColoresApp.textoSecundario),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // Tarjeta principal de balance reactivo
               BalanceCard(
                 saldoTotal: _saldoTotal,
                 ingresosMes: _totalIngresos,
                 gastosMes: _totalGastos,
-              ),
-              const SizedBox(height: 20),
-
-              // Tarjeta de cuentas por cobrar y deudas activas
-              DeudasResumenCard(
-                listaDeudas: listaDeudas,
-                alPulsarVerDetalles: () {},
               ),
               const SizedBox(height: 24),
 
