@@ -17,6 +17,7 @@ import '../modelos/deuda_modelo.dart';
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/nueva_deuda_modal.dart';
+import '../componentes/editar_tarjeta_modal.dart';
 
 // ==========================================
 // PANTALLA: CONTROL DE DEUDAS Y TARJETAS
@@ -24,13 +25,19 @@ import '../componentes/nueva_deuda_modal.dart';
 class DeudasScreen extends StatefulWidget {
   final List<DeudaModelo> listaDeudas;
   final Function(DeudaModelo) alAgregarDeuda;
+  final Function(DeudaModelo) alActualizarTarjeta;
   final Function(String idDeuda, double montoAbono) alAbonarDeuda;
+  final Function(String idTarjeta, int nuevoDiaCorte) alEditarDiaCorte;
+  final Function(String idDeuda, String concepto, double monto, DateTime fecha) alAcumularPrestamo;
 
   const DeudasScreen({
     super.key,
     required this.listaDeudas,
     required this.alAgregarDeuda,
+    required this.alActualizarTarjeta,
     required this.alAbonarDeuda,
+    required this.alEditarDiaCorte,
+    required this.alAcumularPrestamo,
   });
 
   @override
@@ -44,6 +51,12 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _tabControlador = TabController(length: 3, vsync: this);
+    // Listener para reconstruir y cambiar dinámicamente el botón de registro
+    _tabControlador.addListener(() {
+      if (!_tabControlador.indexIsChanging) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -52,8 +65,17 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
-  // Abrir modal para crear una nueva deuda o tarjeta
-  void _mostrarModalNuevaDeuda() {
+  // Abrir modal según la pestaña actual
+  void _mostrarModalSegunPestana() {
+    TipoDeuda tipoInicial;
+    if (_tabControlador.index == 0) {
+      tipoInicial = TipoDeuda.tarjetaCredito;
+    } else if (_tabControlador.index == 1) {
+      tipoInicial = TipoDeuda.meDeben;
+    } else {
+      tipoInicial = TipoDeuda.debo;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -62,31 +84,76 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) => NuevaDeudaModal(
+        tipoInicial: tipoInicial,
+        listaDeudasExistentes: widget.listaDeudas,
         alGuardarDeuda: widget.alAgregarDeuda,
+        alAcumularDeuda: widget.alAcumularPrestamo,
       ),
     );
+  }
+
+  // Abrir modal completo para editar parámetros de la tarjeta
+  void _mostrarModalEditarTarjeta(DeudaModelo tarjeta) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => EditarTarjetaModal(
+        tarjeta: tarjeta,
+        alGuardarCambios: widget.alActualizarTarjeta,
+      ),
+    );
+  }
+
+  // Selector de fecha de calendario para editar el día de corte
+  Future<void> _mostrarDialogoEditarCorte(DeudaModelo tarjeta) async {
+    final DateTime ahora = DateTime.now();
+    final DateTime? fechaElegida = await showDatePicker(
+      context: context,
+      helpText: 'NUEVO DÍA DE CORTE PARA ${tarjeta.tituloOEntidad.toUpperCase()}',
+      initialDate: DateTime(ahora.year, ahora.month, tarjeta.diaCorte ?? 15),
+      firstDate: DateTime(ahora.year, ahora.month, 1),
+      lastDate: DateTime(ahora.year, ahora.month, 31),
+    );
+
+    if (fechaElegida != null && mounted) {
+      widget.alEditarDiaCorte(tarjeta.id, fechaElegida.day);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Día de corte de ${tarjeta.tituloOEntidad} actualizado al día ${fechaElegida.day}',
+          ),
+          backgroundColor: ColoresApp.primarioVerde,
+        ),
+      );
+    }
   }
 
   // Modal para realizar un abono o pago rápido
   void _mostrarDialogoAbonar(DeudaModelo deuda) {
     final TextEditingController abonoControlador = TextEditingController();
     final bool esMeDeben = deuda.tipoDeuda == TipoDeuda.meDeben;
+    final bool esTarjeta = deuda.tipoDeuda == TipoDeuda.tarjetaCredito;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(esMeDeben ? 'Registrar Cobro' : 'Pagar Tarjeta / Deuda'),
+        title: Text(esTarjeta
+            ? 'Pagar Tarjeta ${deuda.tituloOEntidad}'
+            : (esMeDeben ? 'Registrar Cobro a ${deuda.tituloOEntidad}' : 'Pagar a ${deuda.tituloOEntidad}')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Entidad: ${deuda.tituloOEntidad}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            Text('Saldo pendiente actual: \$${deuda.montoPendiente.toStringAsFixed(2)}'),
+            Text('Saldo actual pendiente: \$${deuda.montoPendiente.toStringAsFixed(2)}'),
             const SizedBox(height: 16),
             TextField(
               controller: abonoControlador,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
               decoration: const InputDecoration(
                 labelText: 'Monto a pagar o abonar (\$)',
                 prefixIcon: Icon(Icons.attach_money_rounded),
@@ -121,20 +188,198 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     );
   }
 
+  // Diálogo para ver el historial de pagos y cargos de una tarjeta de crédito
+  void _mostrarHistorialTarjeta(DeudaModelo tarjeta) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            CircleAvatar(radius: 12, backgroundColor: tarjeta.colorTarjeta ?? Colors.purple),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Historial: ${tarjeta.tituloOEntidad}')),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Saldo actual a pagar: \$${tarjeta.montoPendiente.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 12),
+              const Divider(),
+              if (tarjeta.historialPartidas.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: Text(
+                      'No hay pagos ni compras registradas aún en esta tarjeta.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: ColoresApp.textoSecundario),
+                    ),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: tarjeta.historialPartidas.length,
+                    itemBuilder: (context, i) {
+                      final p = tarjeta.historialPartidas[i];
+                      return ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: p.esAbono ? Colors.green.shade50 : Colors.purple.shade50,
+                          child: Icon(
+                            p.esAbono ? Icons.arrow_downward_rounded : Icons.shopping_bag_outlined,
+                            size: 14,
+                            color: p.esAbono ? Colors.green : Colors.purple,
+                          ),
+                        ),
+                        title: Text(p.concepto, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text('${p.fecha.day}/${p.fecha.month}/${p.fecha.year}'),
+                        trailing: Text(
+                          '${p.esAbono ? "-" : "+"}\$${p.monto.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: p.esAbono ? Colors.green : Colors.purple,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Diálogo para ver el historial acumulativo de una persona
+  void _mostrarHistorialPersona(DeudaModelo persona) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.history_rounded, color: ColoresApp.primarioVerde),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Historial: ${persona.tituloOEntidad}')),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Saldo pendiente total: \$${persona.montoPendiente.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 12),
+              const Divider(),
+              if (persona.historialPartidas.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: Text(
+                      'No hay desglose de partidas registradas para esta persona.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: ColoresApp.textoSecundario),
+                    ),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: persona.historialPartidas.length,
+                    itemBuilder: (context, i) {
+                      final p = persona.historialPartidas[i];
+                      return ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: p.esAbono ? Colors.green.shade50 : Colors.orange.shade50,
+                          child: Icon(
+                            p.esAbono ? Icons.arrow_downward_rounded : Icons.add_rounded,
+                            size: 14,
+                            color: p.esAbono ? Colors.green : Colors.orange.shade800,
+                          ),
+                        ),
+                        title: Text(p.concepto, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: Text('${p.fecha.day}/${p.fecha.month}/${p.fecha.year}'),
+                        trailing: Text(
+                          '${p.esAbono ? "-" : "+"}\$${p.monto.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: p.esAbono ? Colors.green : Colors.orange.shade900,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Filtros por pestaña
+    final List<DeudaModelo> tarjetas =
+        widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito).toList();
     final List<DeudaModelo> meDeben =
         widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.meDeben).toList();
     final List<DeudaModelo> debo =
         widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.debo).toList();
-    final List<DeudaModelo> tarjetas =
-        widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito).toList();
+
+    // Configuración dinámica del botón según la pestaña
+    String textoBoton;
+    IconData iconoBoton;
+    Color colorBoton;
+
+    if (_tabControlador.index == 0) {
+      textoBoton = 'Nueva Tarjeta';
+      iconoBoton = Icons.credit_card_rounded;
+      colorBoton = Colors.purple.shade700;
+    } else if (_tabControlador.index == 1) {
+      textoBoton = 'Nuevo Préstamo (Me Deben)';
+      iconoBoton = Icons.handshake_rounded;
+      colorBoton = ColoresApp.primarioVerde;
+    } else {
+      textoBoton = 'Nueva Deuda (Debo)';
+      iconoBoton = Icons.money_off_csred_rounded;
+      colorBoton = ColoresApp.gastoRojo;
+    }
 
     return Scaffold(
       backgroundColor: ColoresApp.fondoClaro,
       appBar: AppBar(
-        title: const Text('Gestión de Deudas y Créditos'),
+        title: const Text('Deudas'),
         backgroundColor: ColoresApp.fondoClaro,
         elevation: 0,
         bottom: TabBar(
@@ -143,54 +388,293 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
           labelColor: ColoresApp.primarioVerde,
           unselectedLabelColor: ColoresApp.textoSecundario,
           tabs: const [
+            Tab(icon: Icon(Icons.credit_card_rounded), text: 'Tarjetas'),
             Tab(icon: Icon(Icons.handshake_rounded), text: 'Me Deben'),
             Tab(icon: Icon(Icons.money_off_csred_rounded), text: 'Debo'),
-            Tab(icon: Icon(Icons.credit_card_rounded), text: 'Tarjetas'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabControlador,
         children: [
+          _ListaTarjetasVista(
+            tarjetas: tarjetas,
+            alPulsarPagar: _mostrarDialogoAbonar,
+            alPulsarEditarCorte: _mostrarDialogoEditarCorte,
+            alPulsarEditarCompleto: _mostrarModalEditarTarjeta,
+            alPulsarVerHistorial: _mostrarHistorialTarjeta,
+          ),
           _ListaDeudasVista(
             lista: meDeben,
             tipo: TipoDeuda.meDeben,
             alPulsarAbonar: _mostrarDialogoAbonar,
+            alPulsarVerHistorial: _mostrarHistorialPersona,
           ),
           _ListaDeudasVista(
             lista: debo,
             tipo: TipoDeuda.debo,
             alPulsarAbonar: _mostrarDialogoAbonar,
-          ),
-          _ListaDeudasVista(
-            lista: tarjetas,
-            tipo: TipoDeuda.tarjetaCredito,
-            alPulsarAbonar: _mostrarDialogoAbonar,
+            alPulsarVerHistorial: _mostrarHistorialPersona,
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _mostrarModalNuevaDeuda,
-        backgroundColor: ColoresApp.primarioVerde,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Nueva Deuda / Tarjeta', style: TextStyle(color: Colors.white)),
+        onPressed: _mostrarModalSegunPestana,
+        backgroundColor: colorBoton,
+        icon: Icon(iconoBoton, color: Colors.white),
+        label: Text(textoBoton, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 }
 
 // ==========================================
-// SUBCOMPONENTE PRIVADO: LISTADO SEGUN CATEGORIA
+// SUBCOMPONENTE PRIVADO: VISTA ESPECIALIZADA DE TARJETAS
+// ==========================================
+class _ListaTarjetasVista extends StatelessWidget {
+  final List<DeudaModelo> tarjetas;
+  final Function(DeudaModelo) alPulsarPagar;
+  final Function(DeudaModelo) alPulsarEditarCorte;
+  final Function(DeudaModelo) alPulsarEditarCompleto;
+  final Function(DeudaModelo) alPulsarVerHistorial;
+
+  const _ListaTarjetasVista({
+    required this.tarjetas,
+    required this.alPulsarPagar,
+    required this.alPulsarEditarCorte,
+    required this.alPulsarEditarCompleto,
+    required this.alPulsarVerHistorial,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (tarjetas.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.credit_card_off_rounded, size: 54, color: Colors.grey.shade400),
+            const SizedBox(height: 12),
+            const Text(
+              'No tienes tarjetas registradas',
+              style: TextStyle(color: ColoresApp.textoSecundario),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+      itemCount: tarjetas.length,
+      itemBuilder: (context, index) {
+        final tarjeta = tarjetas[index];
+        final Color colorBase = tarjeta.colorTarjeta ?? const Color(0xFF263238);
+
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                colorBase,
+                colorBase.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: colorBase.withValues(alpha: 0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Fila superior: Nombre, botones de acción y chip de corte
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.credit_card_rounded, color: Colors.white, size: 26),
+                      const SizedBox(width: 8),
+                      Text(
+                        tarjeta.tituloOEntidad,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      // Botón para ver historial de pagos de la tarjeta
+                      IconButton(
+                        icon: const Icon(Icons.history_rounded, color: Colors.white70, size: 22),
+                        tooltip: 'Historial de pagos y compras',
+                        onPressed: () => alPulsarVerHistorial(tarjeta),
+                      ),
+                      // Botón para editar tarjeta completa
+                      IconButton(
+                        icon: const Icon(Icons.tune_rounded, color: Colors.white70, size: 20),
+                        tooltip: 'Editar límites y parámetros',
+                        onPressed: () => alPulsarEditarCompleto(tarjeta),
+                      ),
+                    ],
+                  ),
+                  // Chip interactivo para ver y modificar el día de corte
+                  InkWell(
+                    onTap: () => alPulsarEditarCorte(tarjeta),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white30),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit_calendar_rounded, size: 14, color: Colors.white),
+                          const SizedBox(width: 5),
+                          Text(
+                            tarjeta.diaCorte != null
+                                ? 'Corte: Día ${tarjeta.diaCorte}'
+                                : 'Definir Corte',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Saldos: A pagar vs Disponible
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Saldo Usado a Pagar',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '\$${tarjeta.montoPendiente.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'Crédito Disponible',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '\$${tarjeta.creditoDisponible.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Barra de consumo de crédito
+              LinearProgressIndicator(
+                value: tarjeta.limiteEfectivo > 0
+                    ? (tarjeta.montoPendiente / tarjeta.limiteEfectivo).clamp(0.0, 1.0)
+                    : 0.0,
+                backgroundColor: Colors.white24,
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(6),
+                minHeight: 6,
+              ),
+              const SizedBox(height: 6),
+
+              // Indicadores de límites
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Límite Banco: \$${tarjeta.montoTotal.toStringAsFixed(0)}',
+                    style: const TextStyle(color: Colors.white60, fontSize: 11),
+                  ),
+                  if (tarjeta.limiteAjustado != null && tarjeta.limiteAjustado! > 0)
+                    Text(
+                      'Tope Personal: \$${tarjeta.limiteAjustado!.toStringAsFixed(0)}',
+                      style: const TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  if (tarjeta.fechaLimitePago != null)
+                    Text(
+                      'Pagar antes: ${tarjeta.fechaLimitePago!.day}/${tarjeta.fechaLimitePago!.month}',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Botón para Pagar Tarjeta
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => alPulsarPagar(tarjeta),
+                  icon: const Icon(Icons.payment_rounded, color: Colors.black87, size: 18),
+                  label: const Text(
+                    'Pagar o Abonar Tarjeta',
+                    style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ==========================================
+// SUBCOMPONENTE PRIVADO: LISTADO DE DEUDAS Y DEUDORES
 // ==========================================
 class _ListaDeudasVista extends StatelessWidget {
   final List<DeudaModelo> lista;
   final TipoDeuda tipo;
   final Function(DeudaModelo) alPulsarAbonar;
+  final Function(DeudaModelo) alPulsarVerHistorial;
 
   const _ListaDeudasVista({
     required this.lista,
     required this.tipo,
     required this.alPulsarAbonar,
+    required this.alPulsarVerHistorial,
   });
 
   @override
@@ -200,20 +684,12 @@ class _ListaDeudasVista extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              tipo == TipoDeuda.tarjetaCredito
-                  ? Icons.credit_card_off_rounded
-                  : Icons.check_circle_outline_rounded,
-              size: 54,
-              color: ColoresApp.textoSecundario.withValues(alpha: 0.5),
-            ),
+            Icon(Icons.check_circle_outline_rounded, size: 54, color: Colors.grey.shade400),
             const SizedBox(height: 12),
             Text(
               tipo == TipoDeuda.meDeben
                   ? 'No hay personas que te deban dinero'
-                  : (tipo == TipoDeuda.tarjetaCredito
-                      ? 'No tienes tarjetas de crédito registradas'
-                      : '¡Felicidades! No tienes deudas registradas'),
+                  : '¡Felicidades! No tienes deudas registradas',
               style: const TextStyle(color: ColoresApp.textoSecundario),
             ),
           ],
@@ -222,11 +698,11 @@ class _ListaDeudasVista extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
       itemCount: lista.length,
       itemBuilder: (context, index) {
         final deuda = lista[index];
-        final bool esTarjeta = tipo == TipoDeuda.tarjetaCredito;
+        final bool esMeDeben = tipo == TipoDeuda.meDeben;
 
         return Card(
           elevation: 1,
@@ -243,22 +719,10 @@ class _ListaDeudasVista extends StatelessWidget {
                     Row(
                       children: [
                         CircleAvatar(
-                          backgroundColor: esTarjeta
-                              ? Colors.purple.shade50
-                              : (tipo == TipoDeuda.meDeben
-                                  ? Colors.green.shade50
-                                  : Colors.red.shade50),
+                          backgroundColor: esMeDeben ? Colors.green.shade50 : Colors.red.shade50,
                           child: Icon(
-                            esTarjeta
-                                ? Icons.credit_card_rounded
-                                : (tipo == TipoDeuda.meDeben
-                                    ? Icons.person_pin_rounded
-                                    : Icons.account_balance_rounded),
-                            color: esTarjeta
-                                ? Colors.purple
-                                : (tipo == TipoDeuda.meDeben
-                                    ? ColoresApp.ingresoVerde
-                                    : ColoresApp.gastoRojo),
+                            esMeDeben ? Icons.person_pin_rounded : Icons.account_balance_rounded,
+                            color: esMeDeben ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -273,42 +737,28 @@ class _ListaDeudasVista extends StatelessWidget {
                                 color: ColoresApp.textoPrincipal,
                               ),
                             ),
-                            if (deuda.diaCorte != null)
+                            if (deuda.historialPartidas.isNotEmpty)
                               Text(
-                                'Corte los días ${deuda.diaCorte} de cada mes',
+                                '${deuda.historialPartidas.length} registros acumulados',
                                 style: const TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
                               ),
                           ],
                         ),
                       ],
                     ),
-                    if (deuda.estaSaldada)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Saldada',
-                          style: TextStyle(
-                            color: ColoresApp.ingresoVerde,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.history_rounded, color: ColoresApp.primarioVerde),
+                      tooltip: 'Ver historial de préstamos',
+                      onPressed: () => alPulsarVerHistorial(deuda),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // Barra de progreso y montos
                 LinearProgressIndicator(
                   value: deuda.porcentajePagado,
                   backgroundColor: Colors.grey.shade200,
-                  color: tipo == TipoDeuda.meDeben
-                      ? ColoresApp.ingresoVerde
-                      : (esTarjeta ? Colors.purple : ColoresApp.gastoRojo),
+                  color: esMeDeben ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo,
                   borderRadius: BorderRadius.circular(8),
                   minHeight: 7,
                 ),
@@ -320,23 +770,14 @@ class _ListaDeudasVista extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          esTarjeta ? 'Límite Total' : 'Total original',
-                          style: const TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
-                        ),
-                        Text(
-                          '\$${deuda.montoTotal.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                        const Text('Total prestado/acumulado', style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario)),
+                        Text('\$${deuda.montoTotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          esTarjeta ? 'Saldo a Pagar' : 'Falta por pagar',
-                          style: const TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
-                        ),
+                        Text('Falta por pagar', style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario)),
                         Text(
                           '\$${deuda.montoPendiente.toStringAsFixed(2)}',
                           style: TextStyle(
@@ -344,9 +785,7 @@ class _ListaDeudasVista extends StatelessWidget {
                             fontSize: 16,
                             color: deuda.estaSaldada
                                 ? ColoresApp.ingresoVerde
-                                : (tipo == TipoDeuda.meDeben
-                                    ? Colors.amber.shade900
-                                    : ColoresApp.gastoRojo),
+                                : (esMeDeben ? Colors.amber.shade900 : ColoresApp.gastoRojo),
                           ),
                         ),
                       ],
@@ -355,26 +794,21 @@ class _ListaDeudasVista extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
 
-                // Botón de acción para pagar / abonar
-                if (!deuda.estaSaldada)
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => alPulsarAbonar(deuda),
-                      icon: Icon(
-                        esTarjeta ? Icons.payment_rounded : Icons.price_check_rounded,
-                        size: 18,
+                Row(
+                  children: [
+                    if (!deuda.estaSaldada)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => alPulsarAbonar(deuda),
+                          icon: const Icon(Icons.price_check_rounded, size: 18),
+                          label: Text(esMeDeben ? 'Registrar Cobro' : 'Abonar a Deuda'),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
                       ),
-                      label: Text(
-                        esTarjeta
-                            ? 'Pagar Tarjeta'
-                            : (tipo == TipoDeuda.meDeben ? 'Registrar Cobro' : 'Abonar a Deuda'),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
+                  ],
+                ),
               ],
             ),
           ),

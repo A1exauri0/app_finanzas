@@ -41,8 +41,88 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Índice actual de la pantalla (0: Inicio, 1: Movimientos, 2: Metas, 3: Deudas)
   int _indicePestanaActual = 0;
 
-  // Estado compartido de deudas y tarjetas
+  // Estado compartido de deudas y tarjetas con historial de pagos y compras
   final List<DeudaModelo> _listaDeudas = [
+    DeudaModelo(
+      id: 'tarjeta-nu',
+      tituloOEntidad: 'Nu México',
+      tipoDeuda: TipoDeuda.tarjetaCredito,
+      montoTotal: 15000.00,
+      limiteAjustado: 8000.00, // Tope personal fijado por el usuario
+      montoPendiente: 3200.00,
+      diaCorte: 12,
+      colorTarjeta: const Color(0xFF820AD1), // Morado característico de Nu
+      fechaLimitePago: DateTime.now().add(const Duration(days: 10)),
+      historialPartidas: [
+        PartidaDeudaModelo(
+          id: 'nu-1',
+          concepto: 'Compra en Amazon',
+          monto: 2200.00,
+          fecha: DateTime.now().subtract(const Duration(days: 8)),
+          esAbono: false,
+        ),
+        PartidaDeudaModelo(
+          id: 'nu-2',
+          concepto: 'Cena Restaurante',
+          monto: 1000.00,
+          fecha: DateTime.now().subtract(const Duration(days: 5)),
+          esAbono: false,
+        ),
+        PartidaDeudaModelo(
+          id: 'nu-3',
+          concepto: 'Pago mensual para no generar intereses',
+          monto: 1500.00,
+          fecha: DateTime.now().subtract(const Duration(days: 2)),
+          esAbono: true,
+        ),
+      ],
+    ),
+    DeudaModelo(
+      id: 'tarjeta-didi',
+      tituloOEntidad: 'Didi Card',
+      tipoDeuda: TipoDeuda.tarjetaCredito,
+      montoTotal: 8000.00,
+      limiteAjustado: 4000.00,
+      montoPendiente: 1450.00,
+      diaCorte: 24,
+      colorTarjeta: const Color(0xFFFF7700), // Naranja característico de Didi
+      fechaLimitePago: DateTime.now().add(const Duration(days: 15)),
+      historialPartidas: [
+        PartidaDeudaModelo(
+          id: 'didi-1',
+          concepto: 'Gasolina',
+          monto: 850.00,
+          fecha: DateTime.now().subtract(const Duration(days: 4)),
+          esAbono: false,
+        ),
+        PartidaDeudaModelo(
+          id: 'didi-2',
+          concepto: 'Suscripciones streaming',
+          monto: 600.00,
+          fecha: DateTime.now().subtract(const Duration(days: 2)),
+          esAbono: false,
+        ),
+      ],
+    ),
+    DeudaModelo(
+      id: 'tarjeta-mp',
+      tituloOEntidad: 'Mercado Pago',
+      tipoDeuda: TipoDeuda.tarjetaCredito,
+      montoTotal: 10000.00,
+      montoPendiente: 890.00,
+      diaCorte: 5,
+      colorTarjeta: const Color(0xFF009EE3), // Azul característico de Mercado Pago
+      fechaLimitePago: DateTime.now().add(const Duration(days: 5)),
+      historialPartidas: [
+        PartidaDeudaModelo(
+          id: 'mp-1',
+          concepto: 'Compra Mercado Libre',
+          monto: 890.00,
+          fecha: DateTime.now().subtract(const Duration(days: 1)),
+          esAbono: false,
+        ),
+      ],
+    ),
     DeudaModelo(
       id: 'deuda-1',
       tituloOEntidad: 'Juan Pérez',
@@ -50,31 +130,46 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       montoTotal: 2500.00,
       montoPendiente: 1500.00,
       fechaLimitePago: DateTime.now().add(const Duration(days: 10)),
-      notas: 'Préstamo personal',
-    ),
-    DeudaModelo(
-      id: 'deuda-2',
-      tituloOEntidad: 'Carlos Gómez',
-      tipoDeuda: TipoDeuda.meDeben,
-      montoTotal: 3000.00,
-      montoPendiente: 3000.00,
-      fechaLimitePago: DateTime.now().add(const Duration(days: 20)),
-    ),
-    DeudaModelo(
-      id: 'tarjeta-1',
-      tituloOEntidad: 'Tarjeta BBVA Oro',
-      tipoDeuda: TipoDeuda.tarjetaCredito,
-      montoTotal: 20000.00,
-      montoPendiente: 4350.00,
-      diaCorte: 15,
-      fechaLimitePago: DateTime.now().add(const Duration(days: 8)),
+      notas: 'Préstamo personal acumulado',
+      historialPartidas: [
+        PartidaDeudaModelo(
+          id: 'p1',
+          concepto: 'Préstamo inicial para refacciones',
+          monto: 1500.00,
+          fecha: DateTime.now().subtract(const Duration(days: 20)),
+          esAbono: false,
+        ),
+        PartidaDeudaModelo(
+          id: 'p2',
+          concepto: 'Préstamo para despensa urgente',
+          monto: 1000.00,
+          fecha: DateTime.now().subtract(const Duration(days: 10)),
+          esAbono: false,
+        ),
+        PartidaDeudaModelo(
+          id: 'p3',
+          concepto: 'Abono en efectivo recibido',
+          monto: 1000.00,
+          fecha: DateTime.now().subtract(const Duration(days: 3)),
+          esAbono: true,
+        ),
+      ],
     ),
     DeudaModelo(
       id: 'deuda-propia-1',
-      tituloOEntidad: 'Préstamo Familiar',
+      tituloOEntidad: 'Préstamo Amigo',
       tipoDeuda: TipoDeuda.debo,
-      montoTotal: 5000.00,
-      montoPendiente: 2000.00,
+      montoTotal: 2000.00,
+      montoPendiente: 1000.00,
+      historialPartidas: [
+        PartidaDeudaModelo(
+          id: 'da1',
+          concepto: 'Préstamo para trámite',
+          monto: 2000.00,
+          fecha: DateTime.now().subtract(const Duration(days: 12)),
+          esAbono: false,
+        ),
+      ],
     ),
   ];
 
@@ -109,35 +204,59 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     ),
   ];
 
-  // Registrar un movimiento e impactar la deuda correspondiente si aplica
+  // Registrar un movimiento e impactar deudas o tarjetas de crédito con historial
   void _agregarMovimiento(MovimientoModelo nuevoMovimiento) {
     setState(() {
       _listaMovimientos.insert(0, nuevoMovimiento);
 
-      // Si tiene deuda vinculada, restamos del monto pendiente
+      // CASO 1: Gasto pagado con Tarjeta de Crédito -> Registra cargo en la tarjeta
+      if (nuevoMovimiento.pagadoConTarjeta && nuevoMovimiento.idTarjetaUtilizada != null) {
+        final tarjetaIndex = _listaDeudas.indexWhere(
+          (d) => d.id == nuevoMovimiento.idTarjetaUtilizada,
+        );
+        if (tarjetaIndex != -1) {
+          final tarjeta = _listaDeudas[tarjetaIndex];
+          tarjeta.registrarCargoTarjeta(
+            monto: nuevoMovimiento.monto,
+            fecha: nuevoMovimiento.fecha,
+            concepto: nuevoMovimiento.titulo,
+          );
+        }
+      }
+
+      // CASO 2: Cobro o Abono a Deuda vinculada -> Registra abono y reduce saldo
       if (nuevoMovimiento.idDeudaAsociada != null) {
         final deudaIndex = _listaDeudas.indexWhere(
           (d) => d.id == nuevoMovimiento.idDeudaAsociada,
         );
         if (deudaIndex != -1) {
           final deuda = _listaDeudas[deudaIndex];
-          deuda.montoPendiente -= nuevoMovimiento.monto;
-          if (deuda.montoPendiente < 0) deuda.montoPendiente = 0;
+          deuda.registrarAbono(
+            monto: nuevoMovimiento.monto,
+            fecha: nuevoMovimiento.fecha,
+            concepto: nuevoMovimiento.titulo,
+          );
         }
       }
     });
 
-    final bool esCobroOPago = nuevoMovimiento.nombreDeudorAsociado != null;
-    final String mensaje = esCobroOPago
-        ? 'Operación de \$${nuevoMovimiento.monto.toStringAsFixed(2)} aplicada a ${nuevoMovimiento.nombreDeudorAsociado}'
-        : '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente';
+    String mensaje;
+    if (nuevoMovimiento.pagadoConTarjeta) {
+      mensaje = 'Gasto de \$${nuevoMovimiento.monto.toStringAsFixed(2)} cargado a ${nuevoMovimiento.nombreTarjetaUtilizada}';
+    } else if (nuevoMovimiento.nombreDeudorAsociado != null) {
+      mensaje = 'Operación de \$${nuevoMovimiento.monto.toStringAsFixed(2)} aplicada a ${nuevoMovimiento.nombreDeudorAsociado}';
+    } else {
+      mensaje = '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente';
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),
-        backgroundColor: nuevoMovimiento.tipo == TipoMovimiento.ingreso
-            ? ColoresApp.ingresoVerde
-            : ColoresApp.gastoRojo,
+        backgroundColor: nuevoMovimiento.pagadoConTarjeta
+            ? Colors.purple.shade700
+            : (nuevoMovimiento.tipo == TipoMovimiento.ingreso
+                ? ColoresApp.ingresoVerde
+                : ColoresApp.gastoRojo),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -150,10 +269,56 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${nuevaDeuda.tituloOEntidad} añadida exitosamente'),
+        content: Text('${nuevaDeuda.tituloOEntidad} agregada exitosamente'),
         backgroundColor: ColoresApp.primarioVerde,
       ),
     );
+  }
+
+  // Actualizar tarjeta con todos sus parámetros editados
+  void _actualizarTarjeta(DeudaModelo tarjetaActualizada) {
+    setState(() {
+      final index = _listaDeudas.indexWhere((d) => d.id == tarjetaActualizada.id);
+      if (index != -1) {
+        _listaDeudas[index] = tarjetaActualizada;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Parámetros de ${tarjetaActualizada.tituloOEntidad} actualizados'),
+        backgroundColor: ColoresApp.primarioVerde,
+      ),
+    );
+  }
+
+  // Acumular un nuevo préstamo a una persona existente
+  void _acumularPrestamo(String idDeuda, String concepto, double monto, DateTime fecha) {
+    setState(() {
+      final index = _listaDeudas.indexWhere((d) => d.id == idDeuda);
+      if (index != -1) {
+        final persona = _listaDeudas[index];
+        persona.acumularNuevoPrestamo(concepto: concepto, monto: monto, fecha: fecha);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Se acumularon \$${monto.toStringAsFixed(2)} a ${persona.tituloOEntidad} (Total: \$${persona.montoPendiente.toStringAsFixed(2)})',
+            ),
+            backgroundColor: ColoresApp.primarioVerde,
+          ),
+        );
+      }
+    });
+  }
+
+  // Modificar la fecha/día de corte de una tarjeta existente
+  void _actualizarDiaCorteTarjeta(String idTarjeta, int nuevoDiaCorte) {
+    setState(() {
+      final index = _listaDeudas.indexWhere((d) => d.id == idTarjeta);
+      if (index != -1) {
+        _listaDeudas[index].diaCorte = nuevoDiaCorte;
+      }
+    });
   }
 
   // Abonar a una deuda desde la pantalla de deudas
@@ -162,16 +327,23 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     if (deudaIndex != -1) {
       final deuda = _listaDeudas[deudaIndex];
       final bool esMeDeben = deuda.tipoDeuda == TipoDeuda.meDeben;
+      final bool esTarjeta = deuda.tipoDeuda == TipoDeuda.tarjetaCredito;
 
-      // Creamos la transacción automática en el historial
+      // Creamos la transacción en el historial
       final transaccion = MovimientoModelo(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        titulo: esMeDeben ? 'Abono de ${deuda.tituloOEntidad}' : 'Pago a ${deuda.tituloOEntidad}',
+        titulo: esTarjeta
+            ? 'Pago a tarjeta ${deuda.tituloOEntidad}'
+            : (esMeDeben ? 'Abono de ${deuda.tituloOEntidad}' : 'Pago a ${deuda.tituloOEntidad}'),
         monto: montoAbono,
         fecha: DateTime.now(),
         tipo: esMeDeben ? TipoMovimiento.ingreso : TipoMovimiento.gasto,
-        icono: esMeDeben ? Icons.handshake_rounded : Icons.credit_card_rounded,
-        categoria: esMeDeben ? 'Cobro de Deuda' : 'Pago de Deuda / Tarjeta',
+        icono: esTarjeta
+            ? Icons.credit_card_rounded
+            : (esMeDeben ? Icons.handshake_rounded : Icons.money_off_csred_rounded),
+        categoria: esTarjeta
+            ? 'Pago de Deuda / Tarjeta'
+            : (esMeDeben ? 'Cobro de Deuda' : 'Pago de Deuda / Tarjeta'),
         idDeudaAsociada: deuda.id,
         nombreDeudorAsociado: deuda.tituloOEntidad,
       );
@@ -211,7 +383,10 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       DeudasScreen(
         listaDeudas: _listaDeudas,
         alAgregarDeuda: _agregarDeuda,
+        alActualizarTarjeta: _actualizarTarjeta,
         alAbonarDeuda: _abonarADeuda,
+        alEditarDiaCorte: _actualizarDiaCorteTarjeta,
+        alAcumularPrestamo: _acumularPrestamo,
       ),
     ];
 
@@ -266,7 +441,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
                     alPresionar: () => setState(() => _indicePestanaActual = 2),
                   ),
                   _BotonNavegacionItem(
-                    icono: Icons.account_balance_wallet_outlined,
+                    icono: Icons.account_balance_wallet_rounded,
                     etiqueta: 'Deudas',
                     estaSeleccionado: _indicePestanaActual == 3,
                     alPresionar: () => setState(() => _indicePestanaActual = 3),
