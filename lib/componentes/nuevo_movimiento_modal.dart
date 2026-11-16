@@ -15,6 +15,14 @@ import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
 
 // ==========================================
+// ENUMERADOR PARA METODO DE PAGO EN GASTOS
+// ==========================================
+enum MetodoPagoGasto {
+  efectivoDebito,
+  tarjetaCredito,
+}
+
+// ==========================================
 // COMPONENTE VISUAL: MODAL PARA NUEVO MOVIMIENTO
 // ==========================================
 class NuevoMovimientoModal extends StatefulWidget {
@@ -47,8 +55,12 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
   late String _categoriaSeleccionada;
   late IconData _iconoSeleccionado;
 
-  // Estado para vincular deuda o tarjeta
+  // Estado para vincular cobro o abono a deuda
   String? _deudaSeleccionadaId;
+
+  // Estado para método de pago al hacer un gasto
+  MetodoPagoGasto _metodoPago = MetodoPagoGasto.efectivoDebito;
+  String? _tarjetaGastoSeleccionadaId;
 
   // Categorías para Ingresos
   static const List<Map<String, dynamic>> _categoriasIngreso = [
@@ -62,12 +74,12 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
   // Categorías para Gastos
   static const List<Map<String, dynamic>> _categoriasGasto = [
     {'nombre': 'Alimentación', 'icono': Icons.shopping_cart_rounded},
-    {'nombre': 'Pago de Deuda / Tarjeta', 'icono': Icons.credit_card_rounded},
     {'nombre': 'Transporte', 'icono': Icons.directions_bus_rounded},
     {'nombre': 'Servicios', 'icono': Icons.wifi_rounded},
     {'nombre': 'Entretenimiento', 'icono': Icons.movie_rounded},
     {'nombre': 'Salud', 'icono': Icons.medical_services_rounded},
     {'nombre': 'Educación', 'icono': Icons.school_rounded},
+    {'nombre': 'Pago de Deuda / Tarjeta', 'icono': Icons.payment_rounded},
     {'nombre': 'Otro Gasto', 'icono': Icons.remove_circle_outline_rounded},
   ];
 
@@ -85,6 +97,14 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
     final categoriasIniciales = _categoriasActuales;
     _categoriaSeleccionada = categoriasIniciales.first['nombre'] as String;
     _iconoSeleccionado = categoriasIniciales.first['icono'] as IconData;
+
+    // Seleccionamos la primera tarjeta de crédito si existe
+    final tarjetasCredito = widget.listaDeudasActivas
+        .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
+        .toList();
+    if (tarjetasCredito.isNotEmpty) {
+      _tarjetaGastoSeleccionadaId = tarjetasCredito.first.id;
+    }
   }
 
   @override
@@ -111,6 +131,10 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
       final double? monto = double.tryParse(_montoControlador.text.replaceAll(',', ''));
       if (monto == null || monto <= 0) return;
 
+      final bool esGastoConTarjeta = _tipoSeleccionado == TipoMovimiento.gasto &&
+          _categoriaSeleccionada != 'Pago de Deuda / Tarjeta' &&
+          _metodoPago == MetodoPagoGasto.tarjetaCredito;
+
       String? nombreDeudorOTarjeta;
       if (_deudaSeleccionadaId != null) {
         final deuda = widget.listaDeudasActivas.firstWhere(
@@ -119,16 +143,27 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
         nombreDeudorOTarjeta = deuda.tituloOEntidad;
       }
 
+      String? nombreTarjetaGasto;
+      if (esGastoConTarjeta && _tarjetaGastoSeleccionadaId != null) {
+        final tarjeta = widget.listaDeudasActivas.firstWhere(
+          (d) => d.id == _tarjetaGastoSeleccionadaId,
+        );
+        nombreTarjetaGasto = tarjeta.tituloOEntidad;
+      }
+
       final nuevoMovimiento = MovimientoModelo(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         titulo: _conceptoControlador.text.trim(),
         monto: monto,
         fecha: _fechaSeleccionada,
         tipo: _tipoSeleccionado,
-        icono: _iconoSeleccionado,
+        icono: esGastoConTarjeta ? Icons.credit_card_rounded : _iconoSeleccionado,
         categoria: _categoriaSeleccionada,
         idDeudaAsociada: _deudaSeleccionadaId,
         nombreDeudorAsociado: nombreDeudorOTarjeta,
+        pagadoConTarjeta: esGastoConTarjeta,
+        idTarjetaUtilizada: esGastoConTarjeta ? _tarjetaGastoSeleccionadaId : null,
+        nombreTarjetaUtilizada: nombreTarjetaGasto,
       );
 
       widget.alGuardarMovimiento(nuevoMovimiento);
@@ -169,16 +204,22 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
     final bool esIngreso = _tipoSeleccionado == TipoMovimiento.ingreso;
     final Color colorActivo = esIngreso ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo;
 
-    // Detectamos si es una operación vinculada a deudas
+    // Detectamos operaciones de deudas
     final bool esCobroDeuda = esIngreso && _categoriaSeleccionada == 'Cobro de Deuda';
-    final bool esPagoDeudaPropia = !esIngreso && _categoriaSeleccionada == 'Pago de Deuda / Tarjeta';
+    final bool esAbonoDeuda = !esIngreso && _categoriaSeleccionada == 'Pago de Deuda / Tarjeta';
+    final bool esGastoComun = !esIngreso && !esAbonoDeuda;
 
-    // Filtramos las deudas relevantes
+    // Filtramos deudas para cobro o abono
     final List<DeudaModelo> opcionesDeudas = esCobroDeuda
         ? widget.listaDeudasActivas.where((d) => d.tipoDeuda == TipoDeuda.meDeben && !d.estaSaldada).toList()
-        : (esPagoDeudaPropia
+        : (esAbonoDeuda
             ? widget.listaDeudasActivas.where((d) => d.tipoDeuda != TipoDeuda.meDeben && !d.estaSaldada).toList()
             : []);
+
+    // Tarjetas de crédito disponibles para pagar gastos
+    final List<DeudaModelo> tarjetasCreditoDisponibles = widget.listaDeudasActivas
+        .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
+        .toList();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -240,6 +281,98 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
               ),
               const SizedBox(height: 20),
 
+              // Selector de Método de Pago si es un GASTO común
+              if (esGastoComun) ...[
+                const Text(
+                  '¿Con qué pagaste este gasto?',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: ColoresApp.textoSecundario),
+                ),
+                const SizedBox(height: 8),
+                SegmentedButton<MetodoPagoGasto>(
+                  segments: const [
+                    ButtonSegment(
+                      value: MetodoPagoGasto.efectivoDebito,
+                      label: Text('Efectivo / Débito'),
+                      icon: Icon(Icons.account_balance_wallet_rounded),
+                    ),
+                    ButtonSegment(
+                      value: MetodoPagoGasto.tarjetaCredito,
+                      label: Text('Tarjeta Crédito'),
+                      icon: Icon(Icons.credit_card_rounded),
+                    ),
+                  ],
+                  selected: {_metodoPago},
+                  onSelectionChanged: (nuevoMetodo) {
+                    setState(() {
+                      _metodoPago = nuevoMetodo.first;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Si pagó con Tarjeta de Crédito, seleccionar con cuál
+                if (_metodoPago == MetodoPagoGasto.tarjetaCredito) ...[
+                  if (tarjetasCreditoDisponibles.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.amber.shade300),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.orange),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Aún no tienes tarjetas registradas. Registra una en la pestaña Tarjetas.',
+                              style: TextStyle(fontSize: 12, color: Colors.brown),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    DropdownButtonFormField<String>(
+                      initialValue: _tarjetaGastoSeleccionadaId,
+                      decoration: InputDecoration(
+                        labelText: 'Selecciona la Tarjeta de Crédito',
+                        prefixIcon: const Icon(Icons.credit_card_rounded, color: Colors.purple),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        helperText: 'El monto se cargará al saldo pendiente de esta tarjeta.',
+                      ),
+                      items: tarjetasCreditoDisponibles.map((t) {
+                        return DropdownMenuItem<String>(
+                          value: t.id,
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 7,
+                                backgroundColor: t.colorTarjeta ?? Colors.purple,
+                              ),
+                              const SizedBox(width: 10),
+                              Text('${t.tituloOEntidad} (Disp: \$${t.creditoDisponible.toStringAsFixed(0)})'),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (idSeleccionada) {
+                        setState(() {
+                          _tarjetaGastoSeleccionadaId = idSeleccionada;
+                        });
+                      },
+                      validator: (valor) {
+                        if (_metodoPago == MetodoPagoGasto.tarjetaCredito && valor == null) {
+                          return 'Selecciona la tarjeta';
+                        }
+                        return null;
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              ],
+
               // Campo de Monto
               TextFormField(
                 controller: _montoControlador,
@@ -255,9 +388,13 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   ),
                 ),
                 validator: (valor) {
-                  if (valor == null || valor.trim().isEmpty) return 'Ingresa un monto válido';
+                  if (valor == null || valor.trim().isEmpty) {
+                    return 'Ingresa un monto válido';
+                  }
                   final montoParsed = double.tryParse(valor.replaceAll(',', ''));
-                  if (montoParsed == null || montoParsed <= 0) return 'Ingresa un número positivo';
+                  if (montoParsed == null || montoParsed <= 0) {
+                    return 'Ingresa un número positivo';
+                  }
                   return null;
                 },
               ),
@@ -272,8 +409,12 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   prefixIcon: const Icon(Icons.edit_note_rounded),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                validator: (valor) =>
-                    (valor == null || valor.trim().isEmpty) ? 'Ingresa una descripción' : null,
+                validator: (valor) {
+                  if (valor == null || valor.trim().isEmpty) {
+                    return 'Ingresa una descripción';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -313,8 +454,8 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
               ),
               const SizedBox(height: 16),
 
-              // Sección condicional para Cobro o Pago de Deuda
-              if (esCobroDeuda || esPagoDeudaPropia) ...[
+              // Sección condicional para Cobro de Deuda o Pago a Acreedor
+              if (esCobroDeuda || esAbonoDeuda) ...[
                 if (opcionesDeudas.isEmpty)
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -373,7 +514,12 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                         }
                       });
                     },
-                    validator: (valor) => valor == null ? 'Selecciona la deuda o tarjeta' : null,
+                    validator: (valor) {
+                      if (valor == null) {
+                        return 'Selecciona la deuda o tarjeta';
+                      }
+                      return null;
+                    },
                   ),
                 const SizedBox(height: 16),
               ],

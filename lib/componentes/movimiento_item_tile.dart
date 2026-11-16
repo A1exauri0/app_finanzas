@@ -61,12 +61,41 @@ class MovimientoItemTile extends StatelessWidget {
             color: ColoresApp.textoPrincipal,
           ),
         ),
-        subtitle: Text(
-          movimiento.categoria,
-          style: const TextStyle(
-            fontSize: 13,
-            color: ColoresApp.textoSecundario,
-          ),
+        subtitle: Row(
+          children: [
+            Text(
+              movimiento.categoria,
+              style: const TextStyle(
+                fontSize: 13,
+                color: ColoresApp.textoSecundario,
+              ),
+            ),
+            if (movimiento.pagadoConTarjeta && movimiento.nombreTarjetaUtilizada != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.credit_card_rounded, size: 12, color: Colors.purple),
+                    const SizedBox(width: 4),
+                    Text(
+                      movimiento.nombreTarjetaUtilizada!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.purple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
         trailing: Text(
           '$prefijoMonto\$${movimiento.monto.toStringAsFixed(2)}',
