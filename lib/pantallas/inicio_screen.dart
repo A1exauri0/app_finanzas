@@ -12,6 +12,7 @@ import '../constantes/colores_app.dart';
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
+import '../modelos/deuda_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
@@ -19,6 +20,7 @@ import '../modelos/movimiento_modelo.dart';
 import '../componentes/balance_card.dart';
 import '../componentes/movimiento_item_tile.dart';
 import '../componentes/nuevo_movimiento_modal.dart';
+import '../componentes/deudas_resumen_card.dart';
 
 // ==========================================
 // PANTALLA PRINCIPAL: INICIO
@@ -31,6 +33,26 @@ class InicioScreen extends StatefulWidget {
 }
 
 class _InicioScreenState extends State<InicioScreen> {
+  // Lista en memoria de personas que deben dinero
+  final List<DeudaModelo> _listaDeudasPorCobrar = [
+    DeudaModelo(
+      id: 'deuda-1',
+      nombreDeudor: 'Juan Pérez',
+      montoTotalPrestado: 2500.00,
+      montoPendiente: 1500.00,
+      fechaPrestamo: DateTime.now().subtract(const Duration(days: 15)),
+      notas: 'Préstamo para reparación de vehículo',
+    ),
+    DeudaModelo(
+      id: 'deuda-2',
+      nombreDeudor: 'Carlos Gómez',
+      montoTotalPrestado: 3000.00,
+      montoPendiente: 3000.00,
+      fechaPrestamo: DateTime.now().subtract(const Duration(days: 5)),
+      notas: 'Préstamo personal',
+    ),
+  ];
+
   // Lista en memoria de movimientos financieros
   final List<MovimientoModelo> _listaMovimientos = [
     MovimientoModelo(
@@ -84,15 +106,33 @@ class _InicioScreenState extends State<InicioScreen> {
       ),
       builder: (ctx) => NuevoMovimientoModal(
         tipoInicial: tipoInicial,
+        listaDeudasActivas: _listaDeudasPorCobrar,
         alGuardarMovimiento: (nuevoMovimiento) {
           setState(() {
             _listaMovimientos.insert(0, nuevoMovimiento);
+
+            // Si es un cobro de deuda, restamos de la deuda asociada
+            if (nuevoMovimiento.idDeudaAsociada != null) {
+              final deudaIndex = _listaDeudasPorCobrar.indexWhere(
+                (d) => d.id == nuevoMovimiento.idDeudaAsociada,
+              );
+              if (deudaIndex != -1) {
+                final deuda = _listaDeudasPorCobrar[deudaIndex];
+                deuda.montoPendiente -= nuevoMovimiento.monto;
+                if (deuda.montoPendiente < 0) deuda.montoPendiente = 0;
+              }
+            }
           });
+
+          // Notificación visual de confirmación
+          final bool esCobro = nuevoMovimiento.nombreDeudorAsociado != null;
+          final String mensaje = esCobro
+              ? 'Se registró abono de \$${nuevoMovimiento.monto.toStringAsFixed(2)} de ${nuevoMovimiento.nombreDeudorAsociado}'
+              : '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente';
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente',
-              ),
+              content: Text(mensaje),
               backgroundColor: nuevoMovimiento.tipo == TipoMovimiento.ingreso
                   ? ColoresApp.ingresoVerde
                   : ColoresApp.gastoRojo,
@@ -156,6 +196,13 @@ class _InicioScreenState extends State<InicioScreen> {
                 saldoTotal: _saldoTotal,
                 ingresosMes: _totalIngresos,
                 gastosMes: _totalGastos,
+              ),
+              const SizedBox(height: 20),
+
+              // Tarjeta de cuentas por cobrar (Deudas de terceros)
+              DeudasResumenCard(
+                listaDeudas: _listaDeudasPorCobrar,
+                alPulsarVerDetalles: () {},
               ),
               const SizedBox(height: 24),
 
