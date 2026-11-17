@@ -84,25 +84,24 @@ class InicioScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Encabezado con título, alternador de modo oscuro y botón de finanzas
+              // Encabezado responsivo con título, alternador de modo oscuro y botón de finanzas
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 2),
-                      Text(
-                        'Mi Resumen Financiero',
-                        style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresApp.texto(context),
-                        ),
+                  Expanded(
+                    child: Text(
+                      'Mi Resumen Financiero',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        color: ColoresApp.texto(context),
                       ),
-                    ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Botón para alternar Modo Claro / Oscuro
                       InkWell(
@@ -264,49 +263,60 @@ class InicioScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _BotonAccionRapidaItem(
-                    icono: Icons.add_rounded,
-                    etiqueta: 'Ingreso',
-                    colorFondo: ColoresApp.ingresoVerde,
-                    alPresionar: () =>
-                        _mostrarModalRegistro(context, TipoMovimiento.ingreso),
+                  Expanded(
+                    child: _BotonAccionRapidaItem(
+                      icono: Icons.add_rounded,
+                      etiqueta: 'Ingreso',
+                      colorFondo: ColoresApp.ingresoVerde,
+                      alPresionar: () =>
+                          _mostrarModalRegistro(context, TipoMovimiento.ingreso),
+                    ),
                   ),
-                  _BotonAccionRapidaItem(
-                    icono: Icons.remove_rounded,
-                    etiqueta: 'Gasto',
-                    colorFondo: ColoresApp.gastoRojo,
-                    alPresionar: () =>
-                        _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                  Expanded(
+                    child: _BotonAccionRapidaItem(
+                      icono: Icons.remove_rounded,
+                      etiqueta: 'Gasto',
+                      colorFondo: ColoresApp.gastoRojo,
+                      alPresionar: () =>
+                          _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                    ),
                   ),
-                  _BotonAccionRapidaItem(
-                    icono: Icons.credit_card_rounded,
-                    etiqueta: 'Tarjeta',
-                    colorFondo: Colors.purple,
-                    alPresionar: () =>
-                        _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                  Expanded(
+                    child: _BotonAccionRapidaItem(
+                      icono: Icons.credit_card_rounded,
+                      etiqueta: 'Tarjeta',
+                      colorFondo: Colors.purple,
+                      alPresionar: () =>
+                          _mostrarModalRegistro(context, TipoMovimiento.gasto),
+                    ),
                   ),
-                  _BotonAccionRapidaItem(
-                    icono: Icons.flag_rounded,
-                    etiqueta: 'Meta',
-                    colorFondo: ColoresApp.metaNaranja,
-                    alPresionar: alPulsarNuevaMeta ?? () {},
+                  Expanded(
+                    child: _BotonAccionRapidaItem(
+                      icono: Icons.flag_rounded,
+                      etiqueta: 'Meta',
+                      colorFondo: ColoresApp.metaNaranja,
+                      alPresionar: alPulsarNuevaMeta ?? () {},
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 28),
 
-              // Encabezado de movimientos recientes
+              // Encabezado responsivo de movimientos recientes
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Movimientos Recientes',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: ColoresApp.texto(context),
+                  Expanded(
+                    child: Text(
+                      'Movimientos Recientes',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ColoresApp.texto(context),
+                      ),
                     ),
                   ),
                   TextButton(onPressed: () {}, child: const Text('Ver todos')),
@@ -386,12 +396,15 @@ class _BotonAccionRapidaItem extends StatelessWidget {
             child: Icon(icono, color: colorFondo, size: 24),
           ),
           const SizedBox(height: 8),
-          Text(
-            etiqueta,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: ColoresApp.texto(context),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              etiqueta,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: ColoresApp.texto(context),
+              ),
             ),
           ),
         ],

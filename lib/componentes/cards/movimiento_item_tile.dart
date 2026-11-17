@@ -57,6 +57,8 @@ class MovimientoItemTile extends StatelessWidget {
         ),
         title: Text(
           movimiento.titulo,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,
@@ -65,57 +67,71 @@ class MovimientoItemTile extends StatelessWidget {
         ),
         subtitle: Row(
           children: [
-            Text(
-              movimiento.categoria,
-              style: TextStyle(
-                fontSize: 13,
-                color: ColoresApp.subtexto(context),
+            Flexible(
+              child: Text(
+                movimiento.categoria,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: ColoresApp.subtexto(context),
+                ),
               ),
             ),
             if (movimiento.pagadoConTarjeta &&
                 movimiento.nombreTarjetaUtilizada != null) ...[
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: ColoresApp.esOscuro(context)
-                      ? Colors.purple.shade900.withValues(alpha: 0.4)
-                      : Colors.purple.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.credit_card_rounded,
-                      size: 12,
-                      color: ColoresApp.esOscuro(context)
-                          ? Colors.purple.shade200
-                          : Colors.purple,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      movimiento.nombreTarjetaUtilizada!,
-                      style: TextStyle(
-                        fontSize: 11,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: ColoresApp.esOscuro(context)
+                        ? Colors.purple.shade900.withValues(alpha: 0.4)
+                        : Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.credit_card_rounded,
+                        size: 12,
                         color: ColoresApp.esOscuro(context)
                             ? Colors.purple.shade200
                             : Colors.purple,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          movimiento.nombreTarjetaUtilizada!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ColoresApp.esOscuro(context)
+                                ? Colors.purple.shade200
+                                : Colors.purple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ],
         ),
-        trailing: Text(
-          '$prefijoMonto\$${movimiento.monto.toStringAsFixed(2)}',
-          style: TextStyle(
-            color: colorMonto,
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
+        trailing: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            '$prefijoMonto\$${movimiento.monto.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: colorMonto,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
           ),
         ),
       ),

@@ -75,17 +75,21 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título de la tarjeta
+          // Título de la tarjeta responsivo
           Row(
             children: [
               const Icon(Icons.donut_large_rounded, color: ColoresApp.primarioVerde),
               const SizedBox(width: 8),
-              Text(
-                'Distribución de Gastos',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: ColoresApp.texto(context),
+              Expanded(
+                child: Text(
+                  'Distribución de Gastos',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: ColoresApp.texto(context),
+                  ),
                 ),
               ),
             ],
@@ -119,12 +123,15 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        '\$${totalGastos.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresApp.gastoRojo,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '\$${totalGastos.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: ColoresApp.gastoRojo,
+                          ),
                         ),
                       ),
                     ],

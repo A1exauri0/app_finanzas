@@ -173,129 +173,141 @@ class FinanzasScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ==========================================
-            // TARJETA PRINCIPAL: DINERO DISPONIBLE REAL
-            // ==========================================
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: saldoSaludable
-                      ? [const Color(0xFF004D40), ColoresApp.primarioVerde]
-                      : [const Color(0xFFB71C1C), const Color(0xFFE53935)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color:
-                        (saldoSaludable ? ColoresApp.primarioVerde : Colors.red)
-                            .withValues(alpha: 0.28),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 850),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ==========================================
+                // TARJETA PRINCIPAL: DINERO DISPONIBLE REAL
+                // ==========================================
+                Container(
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: saldoSaludable
+                          ? [const Color(0xFF004D40), ColoresApp.primarioVerde]
+                          : [const Color(0xFFB71C1C), const Color(0xFFE53935)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            (saldoSaludable ? ColoresApp.primarioVerde : Colors.red)
+                                .withValues(alpha: 0.28),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Expanded(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'DINERO DISPONIBLE HOY',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  saldoSaludable
+                                      ? Icons.check_circle_rounded
+                                      : Icons.warning_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  saldoSaludable ? 'Liquidez Libre' : 'Sobregiro',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
                         child: Text(
-                          'DINERO DISPONIBLE HOY',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
+                          '\$${_dineroDisponibleReal.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 34,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 1.1,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              saldoSaludable
-                                  ? Icons.check_circle_rounded
-                                  : Icons.warning_rounded,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              saldoSaludable ? 'Liquidez Libre' : 'Sobregiro',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                      const SizedBox(height: 6),
+                      Text(
+                        saldoSaludable
+                            ? 'Fondos libres en cuenta y efectivo listos para usar sin tocar tus metas.'
+                            : 'Atención: Has gastado o comprometido más efectivo del que ingresaste.',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '\$${_dineroDisponibleReal.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    saldoSaludable
-                        ? 'Fondos libres en cuenta y efectivo listos para usar sin tocar tus metas.'
-                        : 'Atención: Has gastado o comprometido más efectivo del que ingresaste.',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  const SizedBox(height: 18),
-                  const Divider(color: Colors.white24, height: 1),
-                  const SizedBox(height: 14),
+                      const SizedBox(height: 18),
+                      const Divider(color: Colors.white24, height: 1),
+                      const SizedBox(height: 14),
 
-                  // Desglose de liquidez
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _ElementoDesgloseBlanco(
-                        etiqueta: 'Ingresos',
-                        valor: '+\$${_totalIngresos.toStringAsFixed(0)}',
-                      ),
-                      _ElementoDesgloseBlanco(
-                        etiqueta: 'Gastos Débito',
-                        valor: '-\$${_gastosEfectivoDebito.toStringAsFixed(0)}',
-                      ),
-                      _ElementoDesgloseBlanco(
-                        etiqueta: 'En Metas',
-                        valor: '-\$${_totalAhorradoMetas.toStringAsFixed(0)}',
+                      // Desglose de liquidez responsivo
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ElementoDesgloseBlanco(
+                              etiqueta: 'Ingresos',
+                              valor: '+\$${_totalIngresos.toStringAsFixed(0)}',
+                            ),
+                          ),
+                          Expanded(
+                            child: _ElementoDesgloseBlanco(
+                              etiqueta: 'Gastos Débito',
+                              valor: '-\$${_gastosEfectivoDebito.toStringAsFixed(0)}',
+                            ),
+                          ),
+                          Expanded(
+                            child: _ElementoDesgloseBlanco(
+                              etiqueta: 'En Metas',
+                              valor: '-\$${_totalAhorradoMetas.toStringAsFixed(0)}',
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
             const SizedBox(height: 16),
 
             // ==========================================
@@ -590,7 +602,9 @@ class FinanzasScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
 
@@ -613,12 +627,16 @@ class _ElementoDesgloseBlanco extends StatelessWidget {
           style: const TextStyle(fontSize: 11, color: Colors.white70),
         ),
         const SizedBox(height: 2),
-        Text(
-          valor,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            valor,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
       ],

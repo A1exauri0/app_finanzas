@@ -298,22 +298,32 @@ class _MetasScreenState extends State<MetasScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Selector de Filtros (SegmentedButton)
+            // Selector de Filtros responsivo (SegmentedButton)
             SizedBox(
               width: double.infinity,
               child: SegmentedButton<int>(
+                showSelectedIcon: false,
                 segments: [
                   ButtonSegment(
                     value: 0,
-                    label: Text('Todas (${widget.listaMetas.length})'),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Todas (${widget.listaMetas.length})'),
+                    ),
                   ),
                   ButtonSegment(
                     value: 1,
-                    label: Text('En Progreso (${widget.listaMetas.length - metasCumplidas})'),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('En Progreso (${widget.listaMetas.length - metasCumplidas})'),
+                    ),
                   ),
                   ButtonSegment(
                     value: 2,
-                    label: Text('Logradas ($metasCumplidas)'),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Logradas ($metasCumplidas)'),
+                    ),
                   ),
                 ],
                 selected: {_filtroSeleccionado},

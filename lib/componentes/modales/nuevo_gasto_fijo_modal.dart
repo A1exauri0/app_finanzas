@@ -166,20 +166,26 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Form(
-        key: _formularioClave,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 650,
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Form(
+            key: _formularioClave,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               // Barra indicadora
               Center(
                 child: Container(
@@ -379,6 +385,8 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

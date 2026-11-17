@@ -301,4 +301,36 @@ void main() {
     // Drenamos los temporizadores internos de sqflite
     await tester.pump(const Duration(seconds: 12));
   });
+
+  testWidgets('Verifica responsividad en pantalla compacta (320px) sin errores de overflow', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(const AppFinanzas());
+    await tester.pumpAndSettle();
+
+    // Verificamos que los elementos de navegación y resumen carguen sin desbordamiento
+    expect(find.text('Mi Resumen Financiero'), findsOneWidget);
+    expect(find.text('Inicio'), findsOneWidget);
+    expect(find.text('Movimientos'), findsOneWidget);
+    expect(find.text('Metas'), findsOneWidget);
+    expect(find.text('Deudas'), findsOneWidget);
+
+    // Navegamos por todas las pantallas en pantalla compacta
+    await tester.tap(find.text('Movimientos'));
+    await tester.pumpAndSettle();
+    expect(find.text('Historial de Movimientos'), findsOneWidget);
+
+    await tester.tap(find.text('Metas'));
+    await tester.pumpAndSettle();
+    expect(find.text('Objetivos de Compra'), findsOneWidget);
+
+    await tester.tap(find.text('Deudas'));
+    await tester.pumpAndSettle();
+    expect(find.text('Deudas & Compromisos'), findsOneWidget);
+
+    // Drenamos temporizadores de sqflite
+    await tester.pump(const Duration(seconds: 12));
+  });
 }

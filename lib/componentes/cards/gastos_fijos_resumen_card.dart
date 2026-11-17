@@ -61,45 +61,54 @@ class GastosFijosResumenCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Fila de encabezado: Título y botón para agregar
+          // Fila de encabezado responsiva: Título y botón para agregar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.blue.withValues(alpha: 0.15),
-                    child: const Icon(Icons.repeat_rounded, size: 18, color: Colors.blue),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Gastos Fijos del Mes',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresApp.texto(context),
-                        ),
+              Expanded(
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.blue.withValues(alpha: 0.15),
+                      child: const Icon(Icons.repeat_rounded, size: 18, color: Colors.blue),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Gastos Fijos del Mes',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: ColoresApp.texto(context),
+                            ),
+                          ),
+                          Text(
+                            _pendientesCount > 0
+                                ? '$_pendientesCount pendientes por pagar'
+                                : (listaGastosFijos.isEmpty ? 'Sin gastos registrados' : '¡Todo pagado este mes!'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _pendientesCount > 0
+                                  ? Colors.orange.shade700
+                                  : ColoresApp.primarioVerde,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        _pendientesCount > 0
-                            ? '$_pendientesCount pendientes por pagar'
-                            : (listaGastosFijos.isEmpty ? 'Sin gastos registrados' : '¡Todo pagado este mes!'),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: _pendientesCount > 0
-                              ? Colors.orange.shade700
-                              : ColoresApp.primarioVerde,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               InkWell(
                 onTap: alPulsarNuevoGastoFijo,
                 borderRadius: BorderRadius.circular(12),
@@ -138,24 +147,29 @@ class GastosFijosResumenCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _IndicadorMontoGastoFijo(
-                    titulo: 'Comprometido',
-                    monto: _totalComprometido,
-                    color: ColoresApp.texto(context),
+                  Expanded(
+                    child: _IndicadorMontoGastoFijo(
+                      titulo: 'Comprometido',
+                      monto: _totalComprometido,
+                      color: ColoresApp.texto(context),
+                    ),
                   ),
                   Container(height: 24, width: 1, color: ColoresApp.borde(context)),
-                  _IndicadorMontoGastoFijo(
-                    titulo: 'Pagado',
-                    monto: _totalPagado,
-                    color: ColoresApp.primarioVerde,
+                  Expanded(
+                    child: _IndicadorMontoGastoFijo(
+                      titulo: 'Pagado',
+                      monto: _totalPagado,
+                      color: ColoresApp.primarioVerde,
+                    ),
                   ),
                   Container(height: 24, width: 1, color: ColoresApp.borde(context)),
-                  _IndicadorMontoGastoFijo(
-                    titulo: 'Pendiente',
-                    monto: _totalPendiente,
-                    color: _totalPendiente > 0 ? Colors.orange.shade700 : ColoresApp.subtexto(context),
+                  Expanded(
+                    child: _IndicadorMontoGastoFijo(
+                      titulo: 'Pendiente',
+                      monto: _totalPendiente,
+                      color: _totalPendiente > 0 ? Colors.orange.shade700 : ColoresApp.subtexto(context),
+                    ),
                   ),
                 ],
               ),
@@ -341,12 +355,15 @@ class _IndicadorMontoGastoFijo extends StatelessWidget {
           style: TextStyle(fontSize: 10, color: ColoresApp.subtexto(context)),
         ),
         const SizedBox(height: 2),
-        Text(
-          '\$${monto.toStringAsFixed(0)}',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '\$${monto.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
       ],

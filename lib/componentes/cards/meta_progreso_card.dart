@@ -203,55 +203,72 @@ class MetaProgresoCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Fila de montos: Ahorrado vs Objetivo
+          // Fila de montos: Ahorrado vs Objetivo responsiva
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ahorrado',
-                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '\$${meta.montoAhorrado.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: cumplida
-                          ? Colors.green.shade400
-                          : ColoresApp.texto(context),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ahorrado',
+                      style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '\$${meta.montoAhorrado.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: cumplida
+                              ? Colors.green.shade400
+                              : ColoresApp.texto(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    cumplida ? 'Total de Meta' : 'Faltan: \$${meta.montoFaltante.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: cumplida ? Colors.green.shade400 : Colors.amber.shade700,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        cumplida ? 'Total de Meta' : 'Faltan: \$${meta.montoFaltante.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: cumplida ? Colors.green.shade400 : Colors.amber.shade700,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Objetivo: \$${meta.montoObjetivo.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: ColoresApp.subtexto(context),
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Objetivo: \$${meta.montoObjetivo.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: ColoresApp.subtexto(context),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
 
-          // Indicador de ahorro mensual sugerido o días restantes
+          // Indicador de ahorro mensual sugerido o días restantes responsivo
           if (!cumplida && meta.diasRestantes != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -263,25 +280,40 @@ class MetaProgresoCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.timer_outlined, size: 14, color: ColoresApp.subtexto(context)),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Quedan ${meta.diasRestantes} días',
-                        style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
-                      ),
-                    ],
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.timer_outlined, size: 14, color: ColoresApp.subtexto(context)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Quedan ${meta.diasRestantes} días',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  if (meta.ahorroMensualSugerido != null)
-                    Text(
-                      'Ahorrar ~\$${meta.ahorroMensualSugerido!.toStringAsFixed(0)}/mes',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: meta.color,
+                  if (meta.ahorroMensualSugerido != null) ...[
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          'Ahorrar ~\$${meta.ahorroMensualSugerido!.toStringAsFixed(0)}/mes',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: meta.color,
+                          ),
+                        ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),

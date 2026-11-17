@@ -54,30 +54,36 @@ class DeudasResumenCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Encabezado responsivo
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: ColoresApp.inversionAzul.withValues(alpha: 0.12),
-                    child: const Icon(
-                      Icons.handshake_rounded,
-                      color: ColoresApp.inversionAzul,
-                      size: 20,
+              Expanded(
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: ColoresApp.inversionAzul.withValues(alpha: 0.12),
+                      child: const Icon(
+                        Icons.handshake_rounded,
+                        color: ColoresApp.inversionAzul,
+                        size: 20,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Dinero por Cobrar (Deudas)',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: ColoresApp.texto(context),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Dinero por Cobrar (Deudas)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: ColoresApp.texto(context),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               if (alPulsarVerDetalles != null)
                 IconButton(
@@ -91,30 +97,43 @@ class DeudasResumenCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Pendiente de pago',
-                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '\$${totalPendiente.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: ColoresApp.inversionAzul,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Pendiente de pago',
+                      style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                    ),
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '\$${totalPendiente.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: ColoresApp.inversionAzul,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.bottomRight,
+                  child: Text(
+                    '$deudoresActivos ${deudoresActivos == 1 ? "persona debe" : "personas deben"}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: ColoresApp.subtexto(context),
                     ),
                   ),
-                ],
-              ),
-              Text(
-                '$deudoresActivos ${deudoresActivos == 1 ? "persona debe" : "personas deben"}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: ColoresApp.subtexto(context),
                 ),
               ),
             ],

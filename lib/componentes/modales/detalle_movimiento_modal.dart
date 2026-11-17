@@ -34,47 +34,53 @@ class DetalleMovimientoModal extends StatelessWidget {
     final Color colorMonto = esIngreso ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo;
     final String prefijoMonto = esIngreso ? '+' : '-';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Píldora de arrastre superior
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 650),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
-          const SizedBox(height: 20),
-
-          // Icono y Monto Principal
-          Center(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: colorMonto.withValues(alpha: 0.12),
-                  child: Icon(movimiento.icono, size: 32, color: colorMonto),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '$prefijoMonto\$${movimiento.monto.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: colorMonto,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Píldora de arrastre superior
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
+              ),
+              const SizedBox(height: 20),
+
+              // Icono y Monto Principal
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: colorMonto.withValues(alpha: 0.12),
+                      child: Icon(movimiento.icono, size: 32, color: colorMonto),
+                    ),
+                    const SizedBox(height: 12),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '$prefijoMonto\$${movimiento.monto.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: colorMonto,
+                        ),
+                      ),
+                    ),
                 const SizedBox(height: 4),
                 Text(
                   movimiento.titulo,
@@ -169,7 +175,9 @@ class DetalleMovimientoModal extends StatelessWidget {
           const SizedBox(height: 10),
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 }
 

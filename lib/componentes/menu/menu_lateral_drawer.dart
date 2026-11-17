@@ -67,12 +67,16 @@ class MenuLateralDrawer extends StatelessWidget {
                   style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '\$${dineroDisponible.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '\$${dineroDisponible.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),

@@ -348,29 +348,40 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                 children: [
                   // Ingresos del filtro
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.arrow_downward_rounded, size: 14, color: ColoresApp.ingresoVerde),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Ingresos',
-                              style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '+\$${_totalIngresosFiltrados.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: ColoresApp.ingresoVerde,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.arrow_downward_rounded, size: 14, color: ColoresApp.ingresoVerde),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'Ingresos',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '+\$${_totalIngresosFiltrados.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: ColoresApp.ingresoVerde,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -379,7 +390,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   // Gastos del filtro
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -387,19 +398,27 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                             children: [
                               const Icon(Icons.arrow_upward_rounded, size: 14, color: ColoresApp.gastoRojo),
                               const SizedBox(width: 4),
-                              Text(
-                                'Gastos',
-                                style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                              Flexible(
+                                child: Text(
+                                  'Gastos',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            '-\$${_totalGastosFiltrados.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: ColoresApp.gastoRojo,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '-\$${_totalGastosFiltrados.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: ColoresApp.gastoRojo,
+                              ),
                             ),
                           ),
                         ],
@@ -412,23 +431,29 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   // Balance neto
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsets.only(left: 6),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Balance Neto',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            '${_balanceNetoFiltrado >= 0 ? '+' : ''}\$${_balanceNetoFiltrado.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: _balanceNetoFiltrado >= 0
-                                  ? ColoresApp.ingresoVerde
-                                  : ColoresApp.gastoRojo,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '${_balanceNetoFiltrado >= 0 ? '+' : ''}\$${_balanceNetoFiltrado.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: _balanceNetoFiltrado >= 0
+                                    ? ColoresApp.ingresoVerde
+                                    : ColoresApp.gastoRojo,
+                              ),
                             ),
                           ),
                         ],

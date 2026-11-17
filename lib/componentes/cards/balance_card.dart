@@ -60,43 +60,51 @@ class BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
 
-          // Monto total principal
-          Text(
-            '\$${saldoTotal.toStringAsFixed(2)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+          // Monto total principal responsivo
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '\$${saldoTotal.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
           const SizedBox(height: 20),
 
-          // Fila de resumen: Ingresos y Gastos
+          // Fila de resumen: Ingresos y Gastos responsiva
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Columna de Ingresos
-              _IndicadorFinancieroItem(
-                etiquetaTexto: 'Ingresos',
-                montoTexto: '+\$${ingresosMes.toStringAsFixed(2)}',
-                icono: Icons.arrow_downward_rounded,
-                colorIcono: Colors.greenAccent,
+              Expanded(
+                child: _IndicadorFinancieroItem(
+                  etiquetaTexto: 'Ingresos',
+                  montoTexto: '+\$${ingresosMes.toStringAsFixed(2)}',
+                  icono: Icons.arrow_downward_rounded,
+                  colorIcono: Colors.greenAccent,
+                ),
               ),
 
               // Divisor vertical sutil
               Container(
                 height: 35,
                 width: 1,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
                 color: Colors.white24,
               ),
 
               // Columna de Gastos
-              _IndicadorFinancieroItem(
-                etiquetaTexto: 'Gastos',
-                montoTexto: '-\$${gastosMes.toStringAsFixed(2)}',
-                icono: Icons.arrow_upward_rounded,
-                colorIcono: Colors.redAccent,
+              Expanded(
+                child: _IndicadorFinancieroItem(
+                  etiquetaTexto: 'Gastos',
+                  montoTexto: '-\$${gastosMes.toStringAsFixed(2)}',
+                  icono: Icons.arrow_upward_rounded,
+                  colorIcono: Colors.redAccent,
+                ),
               ),
             ],
           ),
@@ -131,26 +139,34 @@ class _IndicadorFinancieroItem extends StatelessWidget {
           backgroundColor: Colors.white12,
           child: Icon(icono, color: colorIcono, size: 18),
         ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              etiquetaTexto,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                etiquetaTexto,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
               ),
-            ),
-            Text(
-              montoTexto,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  montoTexto,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

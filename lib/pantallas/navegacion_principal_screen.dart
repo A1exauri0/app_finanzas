@@ -897,7 +897,12 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alAbrirPanelFinanzas: _abrirPanelFinanzas,
         alRegistrarMovimiento: _abrirModalRegistroCentral,
       ),
-      body: pantallas[_indicePestanaActual],
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 850),
+          child: pantallas[_indicePestanaActual],
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _ejecutarAccionBotonFlotante,
         backgroundColor: _colorBotonFlotante,
@@ -912,50 +917,67 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         notchMargin: 8,
         color: ColoresApp.tarjeta(context),
         elevation: 10,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Lado Izquierdo: Inicio y Movimientos
-              Row(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 850),
+            child: SizedBox(
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _BotonNavegacionItem(
-                    icono: Icons.home_rounded,
-                    etiqueta: 'Inicio',
-                    estaSeleccionado: _indicePestanaActual == 0,
-                    alPresionar: () => setState(() => _indicePestanaActual = 0),
+                  // Lado Izquierdo: Inicio y Movimientos
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _BotonNavegacionItem(
+                            icono: Icons.home_rounded,
+                            etiqueta: 'Inicio',
+                            estaSeleccionado: _indicePestanaActual == 0,
+                            alPresionar: () => setState(() => _indicePestanaActual = 0),
+                          ),
+                        ),
+                        Expanded(
+                          child: _BotonNavegacionItem(
+                            icono: Icons.receipt_long_rounded,
+                            etiqueta: 'Movimientos',
+                            estaSeleccionado: _indicePestanaActual == 1,
+                            alPresionar: () => setState(() => _indicePestanaActual = 1),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  _BotonNavegacionItem(
-                    icono: Icons.receipt_long_rounded,
-                    etiqueta: 'Movimientos',
-                    estaSeleccionado: _indicePestanaActual == 1,
-                    alPresionar: () => setState(() => _indicePestanaActual = 1),
+
+                  // Espacio central para el FloatingActionButton
+                  const SizedBox(width: 48),
+
+                  // Lado Derecho: Metas y Deudas
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _BotonNavegacionItem(
+                            icono: Icons.flag_rounded,
+                            etiqueta: 'Metas',
+                            estaSeleccionado: _indicePestanaActual == 2,
+                            alPresionar: () => setState(() => _indicePestanaActual = 2),
+                          ),
+                        ),
+                        Expanded(
+                          child: _BotonNavegacionItem(
+                            icono: Icons.account_balance_wallet_rounded,
+                            etiqueta: 'Deudas',
+                            estaSeleccionado: _indicePestanaActual == 3,
+                            alPresionar: () => setState(() => _indicePestanaActual = 3),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-
-              // Espacio central para el FloatingActionButton
-              const SizedBox(width: 48),
-
-              // Lado Derecho: Metas y Deudas
-              Row(
-                children: [
-                  _BotonNavegacionItem(
-                    icono: Icons.flag_rounded,
-                    etiqueta: 'Metas',
-                    estaSeleccionado: _indicePestanaActual == 2,
-                    alPresionar: () => setState(() => _indicePestanaActual = 2),
-                  ),
-                  _BotonNavegacionItem(
-                    icono: Icons.account_balance_wallet_rounded,
-                    etiqueta: 'Deudas',
-                    estaSeleccionado: _indicePestanaActual == 3,
-                    alPresionar: () => setState(() => _indicePestanaActual = 3),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -989,20 +1011,23 @@ class _BotonNavegacionItem extends StatelessWidget {
       onTap: alPresionar,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icono, color: colorActual, size: 22),
             const SizedBox(height: 2),
-            Text(
-              etiqueta,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: estaSeleccionado
-                    ? FontWeight.bold
-                    : FontWeight.w500,
-                color: colorActual,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                etiqueta,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: estaSeleccionado
+                      ? FontWeight.bold
+                      : FontWeight.w500,
+                  color: colorActual,
+                ),
               ),
             ),
           ],

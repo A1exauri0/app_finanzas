@@ -49,17 +49,21 @@ class GraficaBarrasBalanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título de la tarjeta
+          // Título de la tarjeta responsivo
           Row(
             children: [
               const Icon(Icons.bar_chart_rounded, color: ColoresApp.primarioVerde),
               const SizedBox(width: 8),
-              Text(
-                'Comparativa de Flujo de Dinero',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: ColoresApp.texto(context),
+              Expanded(
+                child: Text(
+                  'Comparativa de Flujo de Dinero',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: ColoresApp.texto(context),
+                  ),
                 ),
               ),
             ],
@@ -140,12 +144,16 @@ class _BarraItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              '\$${monto.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: color,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                '\$${monto.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
             ),
           ],

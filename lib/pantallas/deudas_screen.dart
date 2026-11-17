@@ -599,30 +599,38 @@ class _ListaTarjetasVista extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Fila superior: Nombre, chip de corte y menú de 3 puntos
+              // Fila superior responsiva: Nombre, chip de corte y menú de 3 puntos
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.credit_card_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        tarjeta.tituloOEntidad,
-                        style: const TextStyle(
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.credit_card_rounded,
                           color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                          size: 26,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            tarjeta.tituloOEntidad,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 6),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Chip interactivo para ver y modificar el día de corte
                       InkWell(
@@ -733,45 +741,58 @@ class _ListaTarjetasVista extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Saldos: A pagar vs Disponible
+              // Saldos responsivos: A pagar vs Disponible
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Saldo Usado a Pagar',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '\$${tarjeta.montoPendiente.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Saldo Usado a Pagar',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '\$${tarjeta.montoPendiente.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'Crédito Disponible',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '\$${tarjeta.creditoDisponible.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Crédito Disponible',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '\$${tarjeta.creditoDisponible.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -917,48 +938,58 @@ class _ListaDeudasVista extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Encabezado de persona responsivo
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: esMeDeben
-                              ? Colors.green.shade50
-                              : Colors.red.shade50,
-                          child: Icon(
-                            esMeDeben
-                                ? Icons.person_pin_rounded
-                                : Icons.account_balance_rounded,
-                            color: esMeDeben
-                                ? ColoresApp.ingresoVerde
-                                : ColoresApp.gastoRojo,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              deuda.tituloOEntidad,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: ColoresApp.texto(context),
-                              ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: esMeDeben
+                                ? Colors.green.shade50
+                                : Colors.red.shade50,
+                            child: Icon(
+                              esMeDeben
+                                  ? Icons.person_pin_rounded
+                                  : Icons.account_balance_rounded,
+                              color: esMeDeben
+                                  ? ColoresApp.ingresoVerde
+                                  : ColoresApp.gastoRojo,
                             ),
-                            if (deuda.historialPartidas.isNotEmpty)
-                              Text(
-                                '${deuda.historialPartidas.length} registros acumulados',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: ColoresApp.subtexto(context),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  deuda.tituloOEntidad,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: ColoresApp.texto(context),
+                                  ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      ],
+                                if (deuda.historialPartidas.isNotEmpty)
+                                  Text(
+                                    '${deuda.historialPartidas.length} registros acumulados',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: ColoresApp.subtexto(context),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 6),
                     // Menú de 3 puntos (Historial, Editar, Eliminar)
                     PopupMenuButton<String>(
                       icon: Icon(
@@ -1044,48 +1075,61 @@ class _ListaDeudasVista extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total prestado/acumulado',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: ColoresApp.subtexto(context),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total prestado/acumulado',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColoresApp.subtexto(context),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '\$${deuda.montoTotal.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: ColoresApp.texto(context),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '\$${deuda.montoTotal.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: ColoresApp.texto(context),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Falta por pagar',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: ColoresApp.subtexto(context),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Falta por pagar',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColoresApp.subtexto(context),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '\$${deuda.montoPendiente.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: deuda.estaSaldada
-                                ? ColoresApp.ingresoVerde
-                                : (esMeDeben
-                                      ? Colors.amber.shade900
-                                      : ColoresApp.gastoRojo),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '\$${deuda.montoPendiente.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: deuda.estaSaldada
+                                    ? ColoresApp.ingresoVerde
+                                    : (esMeDeben
+                                          ? Colors.amber.shade900
+                                          : ColoresApp.gastoRojo),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
