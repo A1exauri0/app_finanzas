@@ -43,6 +43,7 @@ class MovimientosScreen extends StatefulWidget {
   final Function(MovimientoModelo movimientoActualizado) alActualizarMovimiento;
   final VoidCallback? alPulsarNuevoMovimiento;
   final VoidCallback? alAbrirMenuLateral;
+  final VoidCallback? alCerrarVentana;
 
   const MovimientosScreen({
     super.key,
@@ -52,6 +53,7 @@ class MovimientosScreen extends StatefulWidget {
     required this.alActualizarMovimiento,
     this.alPulsarNuevoMovimiento,
     this.alAbrirMenuLateral,
+    this.alCerrarVentana,
   });
 
   @override
@@ -258,8 +260,14 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                 onPressed: widget.alAbrirMenuLateral,
               )
             : null,
-        actions: const [
-          BotonModoOscuro(),
+        actions: [
+          const BotonModoOscuro(),
+          if (widget.alCerrarVentana != null)
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              tooltip: 'Cerrar ventana',
+              onPressed: widget.alCerrarVentana,
+            ),
         ],
       ),
       body: Column(
@@ -527,6 +535,15 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
           ),
         ],
       ),
+      floatingActionButton: widget.alPulsarNuevoMovimiento != null
+          ? FloatingActionButton(
+              backgroundColor: ColoresApp.primarioVerde,
+              tooltip: 'Nuevo Movimiento',
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
+              onPressed: widget.alPulsarNuevoMovimiento,
+            )
+          : null,
     );
   }
 }

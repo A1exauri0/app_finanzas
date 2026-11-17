@@ -20,6 +20,7 @@ import '../modelos/gasto_fijo_modelo.dart';
 import '../componentes/cards/gastos_fijos_resumen_card.dart';
 import '../componentes/modales/editar_tarjeta_modal.dart';
 import '../componentes/modales/editar_deuda_persona_modal.dart';
+import '../componentes/modales/nueva_deuda_modal.dart';
 import '../componentes/comunes/boton_modo_oscuro.dart';
 
 // ==========================================
@@ -42,6 +43,7 @@ class DeudasScreen extends StatefulWidget {
   final Function(GastoFijoModelo) alEliminarGastoFijo;
   final Function(int)? alCambiarSubPestana;
   final VoidCallback? alAbrirMenuLateral;
+  final VoidCallback? alCerrarVentana;
 
   const DeudasScreen({
     super.key,
@@ -60,6 +62,7 @@ class DeudasScreen extends StatefulWidget {
     required this.alEliminarGastoFijo,
     this.alCambiarSubPestana,
     this.alAbrirMenuLateral,
+    this.alCerrarVentana,
   });
 
   @override
@@ -475,8 +478,14 @@ class _DeudasScreenState extends State<DeudasScreen>
                 onPressed: widget.alAbrirMenuLateral,
               )
             : null,
-        actions: const [
-          BotonModoOscuro(),
+        actions: [
+          const BotonModoOscuro(),
+          if (widget.alCerrarVentana != null)
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              tooltip: 'Cerrar ventana',
+              onPressed: widget.alCerrarVentana,
+            ),
         ],
         bottom: TabBar(
           controller: _tabControlador,
@@ -537,6 +546,73 @@ class _DeudasScreenState extends State<DeudasScreen>
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _tabControlador.index == 0
+            ? Colors.purple.shade700
+            : (_tabControlador.index == 1
+                ? ColoresApp.primarioVerde
+                : (_tabControlador.index == 2
+                    ? ColoresApp.gastoRojo
+                    : const Color(0xFF1976D2))),
+        tooltip: 'Nuevo Registro',
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
+        onPressed: () {
+          switch (_tabControlador.index) {
+            case 0:
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: ColoresApp.tarjeta(context),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                builder: (ctx) => NuevaDeudaModal(
+                  tipoInicial: TipoDeuda.tarjetaCredito,
+                  listaDeudasExistentes: widget.listaDeudas,
+                  alGuardarDeuda: widget.alAgregarDeuda,
+                  alAcumularDeuda: widget.alAcumularPrestamo,
+                ),
+              );
+              break;
+            case 1:
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: ColoresApp.tarjeta(context),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                builder: (ctx) => NuevaDeudaModal(
+                  tipoInicial: TipoDeuda.meDeben,
+                  listaDeudasExistentes: widget.listaDeudas,
+                  alGuardarDeuda: widget.alAgregarDeuda,
+                  alAcumularDeuda: widget.alAcumularPrestamo,
+                ),
+              );
+              break;
+            case 2:
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: ColoresApp.tarjeta(context),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                builder: (ctx) => NuevaDeudaModal(
+                  tipoInicial: TipoDeuda.debo,
+                  listaDeudasExistentes: widget.listaDeudas,
+                  alGuardarDeuda: widget.alAgregarDeuda,
+                  alAcumularDeuda: widget.alAcumularPrestamo,
+                ),
+              );
+              break;
+            case 3:
+              widget.alPulsarNuevoGastoFijo();
+              break;
+          }
+        },
       ),
     );
   }

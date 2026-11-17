@@ -32,6 +32,7 @@ class MetasScreen extends StatefulWidget {
   final Function(String idMeta, double montoAbono) alAbonarMeta;
   final Function(String idMeta, double montoRetiro) alRetirarMeta;
   final VoidCallback? alAbrirMenuLateral;
+  final VoidCallback? alCerrarVentana;
 
   const MetasScreen({
     super.key,
@@ -42,6 +43,7 @@ class MetasScreen extends StatefulWidget {
     required this.alAbonarMeta,
     required this.alRetirarMeta,
     this.alAbrirMenuLateral,
+    this.alCerrarVentana,
   });
 
   @override
@@ -302,8 +304,14 @@ class _MetasScreenState extends State<MetasScreen> {
                 onPressed: widget.alAbrirMenuLateral,
               )
             : null,
-        actions: const [
-          BotonModoOscuro(),
+        actions: [
+          const BotonModoOscuro(),
+          if (widget.alCerrarVentana != null)
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              tooltip: 'Cerrar ventana',
+              onPressed: widget.alCerrarVentana,
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -392,6 +400,23 @@ class _MetasScreenState extends State<MetasScreen> {
               ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFE65100),
+        tooltip: 'Nueva Meta',
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: ColoresApp.tarjeta(context),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            builder: (ctx) => NuevaMetaModal(alGuardarMeta: widget.alCrearMeta),
+          );
+        },
       ),
     );
   }
