@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 // ==========================================
 // IMPORTACIONES DE CONSTANTES Y ESTILOS
 // ==========================================
-import '../constantes/colores_app.dart';
-import '../constantes/catalogo_bancos.dart';
+import '../../constantes/colores_app.dart';
+import '../../constantes/catalogo_bancos.dart';
 
 // ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
-import '../modelos/deuda_modelo.dart';
+import '../../modelos/deuda_modelo.dart';
 
 // ==========================================
 // COMPONENTE VISUAL: MODAL PARA CREAR DEUDA O TARJETA

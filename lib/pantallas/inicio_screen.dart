@@ -23,9 +23,10 @@ import '../modelos/deuda_modelo.dart';
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
-import '../componentes/balance_card.dart';
-import '../componentes/movimiento_item_tile.dart';
-import '../componentes/nuevo_movimiento_modal.dart';
+import '../componentes/cards/balance_card.dart';
+import '../componentes/cards/movimiento_item_tile.dart';
+import '../componentes/modales/nuevo_movimiento_modal.dart';
+
 
 // ==========================================
 // PANTALLA PRINCIPAL: INICIO

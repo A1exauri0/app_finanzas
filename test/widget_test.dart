@@ -11,6 +11,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:app_finanzas/main.dart';
 import 'package:app_finanzas/servicios/base_datos_servicio.dart';
 import 'package:app_finanzas/servicios/tema_servicio.dart';
+import 'package:app_finanzas/componentes/graficas/grafica_dona_categorias.dart';
+
+
+
 
 
 void main() {
@@ -125,5 +129,42 @@ void main() {
 
     // Drenamos los temporizadores de bloqueo de transacciones de SQLite
     await tester.pump(const Duration(seconds: 12));
+  });
+
+  testWidgets('Verifica gráfica de dona de gastos por categoría', (WidgetTester tester) async {
+    final segmentos = [
+      SegmentoCategoriaDona(
+        nombre: 'Comida',
+        monto: 850.0,
+        color: Colors.red,
+        icono: Icons.shopping_cart_rounded,
+      ),
+      SegmentoCategoriaDona(
+        nombre: 'Transporte',
+        monto: 500.0,
+        color: Colors.blue,
+        icono: Icons.directions_car_rounded,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: GraficaDonaCategoriasCard(
+              segmentos: segmentos,
+              totalGastos: 1350.0,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verificamos que la gráfica de dona esté visible con sus categorías
+    expect(find.text('Distribución de Gastos'), findsOneWidget);
+    expect(find.text('Total Gastos'), findsOneWidget);
+    expect(find.text('Comida'), findsOneWidget);
+    expect(find.text('Transporte'), findsOneWidget);
   });
 }

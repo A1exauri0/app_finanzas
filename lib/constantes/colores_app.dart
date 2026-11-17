@@ -76,7 +76,6 @@ class ColoresApp {
       scaffoldBackgroundColor: fondoClaro,
       cardColor: tarjetaClara,
       canvasColor: fondoClaro,
-      dialogBackgroundColor: tarjetaClara,
       dividerColor: bordeClaro,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primarioVerde,
@@ -121,7 +120,6 @@ class ColoresApp {
       scaffoldBackgroundColor: fondoOscuro,
       cardColor: tarjetaOscura,
       canvasColor: fondoOscuro,
-      dialogBackgroundColor: tarjetaOscura,
       dividerColor: bordeOscuro,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primarioVerde,

@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 // ==========================================
 // IMPORTACIONES DE CONSTANTES Y ESTILOS
 // ==========================================
-import '../constantes/colores_app.dart';
+import '../../constantes/colores_app.dart';
 
 // ==========================================
 // IMPORTACIONES DE SERVICIOS
 // ==========================================
-import '../servicios/tema_servicio.dart';
+import '../../servicios/tema_servicio.dart';
 
 
 // ==========================================

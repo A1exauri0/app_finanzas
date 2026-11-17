@@ -16,8 +16,9 @@ import '../modelos/meta_modelo.dart';
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
-import '../componentes/meta_progreso_card.dart';
-import '../componentes/nueva_meta_modal.dart';
+import '../componentes/cards/meta_progreso_card.dart';
+import '../componentes/modales/nueva_meta_modal.dart';
+
 
 // ==========================================
 // PANTALLA: GESTION DE METAS Y OBJETIVOS DE COMPRA

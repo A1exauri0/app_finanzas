@@ -24,8 +24,10 @@ import '../modelos/meta_modelo.dart';
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
-import '../componentes/grafica_dona_categorias.dart';
-import '../componentes/grafica_barras_balance.dart';
+import '../componentes/graficas/grafica_dona_categorias.dart';
+import '../componentes/graficas/grafica_barras_balance.dart';
+
+
 
 // ==========================================
 // PANTALLA: PANEL DE FINANZAS Y GRAFICAS

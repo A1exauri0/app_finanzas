@@ -16,9 +16,10 @@ import '../modelos/deuda_modelo.dart';
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
-import '../componentes/nueva_deuda_modal.dart';
-import '../componentes/editar_tarjeta_modal.dart';
-import '../componentes/editar_deuda_persona_modal.dart';
+import '../componentes/modales/nueva_deuda_modal.dart';
+import '../componentes/modales/editar_tarjeta_modal.dart';
+import '../componentes/modales/editar_deuda_persona_modal.dart';
+
 
 // ==========================================
 // PANTALLA: CONTROL DE DEUDAS Y TARJETAS

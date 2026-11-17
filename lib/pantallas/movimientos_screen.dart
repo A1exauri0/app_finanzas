@@ -17,9 +17,10 @@ import '../modelos/deuda_modelo.dart';
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
-import '../componentes/movimiento_item_tile.dart';
-import '../componentes/detalle_movimiento_modal.dart';
-import '../componentes/editar_movimiento_modal.dart';
+import '../componentes/cards/movimiento_item_tile.dart';
+import '../componentes/modales/detalle_movimiento_modal.dart';
+import '../componentes/modales/editar_movimiento_modal.dart';
+
 
 // ==========================================
 // ENUMERADOR PARA FILTROS RAPIDOS

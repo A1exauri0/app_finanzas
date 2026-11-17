@@ -23,9 +23,10 @@ import '../servicios/base_datos_servicio.dart';
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
-import '../componentes/nuevo_movimiento_modal.dart';
-import '../componentes/nueva_meta_modal.dart';
-import '../componentes/menu_lateral_drawer.dart';
+import '../componentes/modales/nuevo_movimiento_modal.dart';
+import '../componentes/modales/nueva_meta_modal.dart';
+import '../componentes/menu/menu_lateral_drawer.dart';
+
 
 // ==========================================
 // IMPORTACIONES DE PANTALLAS

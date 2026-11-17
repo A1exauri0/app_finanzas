@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 // ==========================================
 // IMPORTACIONES DE CONSTANTES Y ESTILOS
 // ==========================================
-import '../constantes/colores_app.dart';
+import '../../constantes/colores_app.dart';
 
 // ==========================================
 // MODELO AUXILIAR: SEGMENTO DE GRAFICA DE DONA

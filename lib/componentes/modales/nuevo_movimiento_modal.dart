@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 // ==========================================
 // IMPORTACIONES DE CONSTANTES Y ESTILOS
 // ==========================================
-import '../constantes/colores_app.dart';
+import '../../constantes/colores_app.dart';
 
 // ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
-import '../modelos/movimiento_modelo.dart';
-import '../modelos/deuda_modelo.dart';
+import '../../modelos/movimiento_modelo.dart';
+import '../../modelos/deuda_modelo.dart';
 
 // ==========================================
 // ENUMERADOR PARA METODO DE PAGO EN GASTOS
