@@ -416,7 +416,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -434,7 +434,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -484,6 +484,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
+      backgroundColor: ColoresApp.fondo(context),
       drawer: MenuLateralDrawer(
         dineroDisponible: _dineroDisponibleReal,
         indicePestanaActual: _indicePestanaActual,
@@ -503,7 +504,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
-        color: Colors.white,
+        color: ColoresApp.tarjeta(context),
         elevation: 10,
         child: SizedBox(
           height: 60,

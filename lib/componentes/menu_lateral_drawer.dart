@@ -9,6 +9,12 @@ import 'package:flutter/material.dart';
 import '../constantes/colores_app.dart';
 
 // ==========================================
+// IMPORTACIONES DE SERVICIOS
+// ==========================================
+import '../servicios/tema_servicio.dart';
+
+
+// ==========================================
 // COMPONENTE VISUAL: MENU LATERAL (DRAWER)
 // ==========================================
 class MenuLateralDrawer extends StatelessWidget {
@@ -32,7 +38,7 @@ class MenuLateralDrawer extends StatelessWidget {
     final bool saldoPositivo = dineroDisponible > 0;
 
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       child: Column(
         children: [
           // Encabezado del menú
@@ -82,9 +88,15 @@ class MenuLateralDrawer extends StatelessWidget {
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: ColoresApp.primarioVerde.withValues(alpha: 0.1),
+              color: ColoresApp.primarioVerde.withValues(
+                alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.1,
+              ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: ColoresApp.primarioVerde.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: ColoresApp.primarioVerde.withValues(
+                  alpha: ColoresApp.esOscuro(context) ? 0.4 : 0.3,
+                ),
+              ),
             ),
             child: ListTile(
               leading: const CircleAvatar(
@@ -92,17 +104,17 @@ class MenuLateralDrawer extends StatelessWidget {
                 radius: 18,
                 child: Icon(Icons.pie_chart_rounded, color: Colors.white, size: 20),
               ),
-              title: const Text(
+              title: Text(
                 'Panel Financiero & Gráficas',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: ColoresApp.textoPrincipal,
+                  color: ColoresApp.texto(context),
                 ),
               ),
-              subtitle: const Text(
+              subtitle: Text(
                 'Gráficas de dona, barras y salud',
-                style: TextStyle(fontSize: 11, color: ColoresApp.textoSecundario),
+                style: TextStyle(fontSize: 11, color: ColoresApp.subtexto(context)),
               ),
               trailing: const Icon(Icons.chevron_right_rounded, color: ColoresApp.primarioVerde),
               onTap: () {
@@ -155,6 +167,44 @@ class MenuLateralDrawer extends StatelessWidget {
                     alSeleccionarPestana(3);
                   },
                 ),
+                const Divider(),
+
+                // Selector rápido interactivo de Modo Oscuro
+                ValueListenableBuilder<ThemeMode>(
+                  valueListenable: TemaServicio.instancia.temaModoNotifier,
+                  builder: (context, modo, _) {
+                    final bool esOscuro =
+                        TemaServicio.instancia.esModoOscuroActivo(context);
+                    return SwitchListTile(
+                      secondary: Icon(
+                        esOscuro
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        color:
+                            esOscuro ? Colors.amber : ColoresApp.primarioVerde,
+                      ),
+                      title: Text(
+                        'Modo Oscuro',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: ColoresApp.texto(context),
+                        ),
+                      ),
+                      subtitle: Text(
+                        esOscuro ? 'Activado' : 'Desactivado',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ColoresApp.subtexto(context),
+                        ),
+                      ),
+                      value: esOscuro,
+                      onChanged: (_) {
+                        TemaServicio.instancia.alternarTema(context);
+                      },
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -203,19 +253,21 @@ class _ItemMenuLateral extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icono,
-        color: estaSeleccionado ? ColoresApp.primarioVerde : ColoresApp.textoSecundario,
+        color: estaSeleccionado ? ColoresApp.primarioVerde : ColoresApp.subtexto(context),
       ),
       title: Text(
         titulo,
         style: TextStyle(
           fontWeight: estaSeleccionado ? FontWeight.bold : FontWeight.w500,
-          color: estaSeleccionado ? ColoresApp.primarioVerde : ColoresApp.textoPrincipal,
+          color: estaSeleccionado ? ColoresApp.primarioVerde : ColoresApp.texto(context),
           fontSize: 14,
         ),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       selected: estaSeleccionado,
-      selectedTileColor: ColoresApp.primarioVerde.withValues(alpha: 0.08),
+      selectedTileColor: ColoresApp.primarioVerde.withValues(
+        alpha: ColoresApp.esOscuro(context) ? 0.16 : 0.08,
+      ),
       onTap: alPulsar,
     );
   }

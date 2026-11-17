@@ -10,6 +10,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // ==========================================
 import 'package:app_finanzas/main.dart';
 import 'package:app_finanzas/servicios/base_datos_servicio.dart';
+import 'package:app_finanzas/servicios/tema_servicio.dart';
+
 
 void main() {
   setUpAll(() {
@@ -95,5 +97,33 @@ void main() {
 
     expect(find.text('Objetivos de Compra'), findsOneWidget);
     expect(find.text('No hay metas en esta categoría.'), findsOneWidget);
+  });
+
+  testWidgets('Verifica alternar Modo Oscuro y persistencia de tema', (WidgetTester tester) async {
+    TemaServicio.instancia.cambiarModo(ThemeMode.light);
+    await tester.pumpWidget(const AppFinanzas());
+    await tester.pumpAndSettle();
+
+    // Comprobamos el icono inicial de cambio de tema (luna en modo claro)
+    final botonTema = find.byIcon(Icons.dark_mode_rounded);
+    expect(botonTema, findsOneWidget);
+
+    // Tocamos el botón de alternar tema
+    await tester.tap(botonTema);
+    await tester.pumpAndSettle();
+
+    // Verificamos que ahora se muestre el icono de sol (modo oscuro activo)
+    expect(find.byIcon(Icons.light_mode_rounded), findsOneWidget);
+    expect(TemaServicio.instancia.temaModoNotifier.value, ThemeMode.dark);
+
+    // Tocamos de nuevo para volver a modo claro
+    await tester.tap(find.byIcon(Icons.light_mode_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.dark_mode_rounded), findsOneWidget);
+    expect(TemaServicio.instancia.temaModoNotifier.value, ThemeMode.light);
+
+    // Drenamos los temporizadores de bloqueo de transacciones de SQLite
+    await tester.pump(const Duration(seconds: 12));
   });
 }

@@ -40,7 +40,7 @@ class MetaProgresoCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: ColoresApp.tarjetaFondo,
+        color: ColoresApp.tarjeta(context),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: cumplida ? Colors.green.shade300 : meta.color.withValues(alpha: 0.25),
@@ -48,7 +48,9 @@ class MetaProgresoCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: (cumplida ? Colors.green : meta.color).withValues(alpha: 0.08),
+            color: (cumplida ? Colors.green : meta.color).withValues(
+              alpha: ColoresApp.esOscuro(context) ? 0.15 : 0.08,
+            ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -79,10 +81,10 @@ class MetaProgresoCard extends StatelessWidget {
                       meta.titulo,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: ColoresApp.textoPrincipal,
+                        color: ColoresApp.texto(context),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -90,9 +92,9 @@ class MetaProgresoCard extends StatelessWidget {
                       meta.categoria,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: ColoresApp.textoSecundario,
+                        color: ColoresApp.subtexto(context),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -134,7 +136,7 @@ class MetaProgresoCard extends StatelessWidget {
                 ),
               // Menú de opciones: Editar o Eliminar
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, color: ColoresApp.textoSecundario, size: 20),
+                icon: Icon(Icons.more_vert_rounded, color: ColoresApp.subtexto(context), size: 20),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 onSelected: (valor) {
                   if (valor == 'editar') {
@@ -144,13 +146,13 @@ class MetaProgresoCard extends StatelessWidget {
                   }
                 },
                 itemBuilder: (ctx) => [
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'editar',
                     child: Row(
                       children: [
-                        Icon(Icons.edit_note_rounded, color: ColoresApp.textoPrincipal, size: 20),
-                        SizedBox(width: 10),
-                        Text('Editar Meta'),
+                        Icon(Icons.edit_note_rounded, color: ColoresApp.texto(context), size: 20),
+                        const SizedBox(width: 10),
+                        const Text('Editar Meta'),
                       ],
                     ),
                   ),
@@ -176,7 +178,9 @@ class MetaProgresoCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progreso,
               minHeight: 9,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: ColoresApp.esOscuro(context)
+                  ? Colors.grey.shade800
+                  : Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(
                 cumplida ? Colors.green : meta.color,
               ),
@@ -191,9 +195,9 @@ class MetaProgresoCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Ahorrado',
-                    style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -201,7 +205,9 @@ class MetaProgresoCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: cumplida ? Colors.green.shade800 : ColoresApp.textoPrincipal,
+                      color: cumplida
+                          ? Colors.green.shade400
+                          : ColoresApp.texto(context),
                     ),
                   ),
                 ],
@@ -214,15 +220,15 @@ class MetaProgresoCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: cumplida ? Colors.green.shade800 : Colors.amber.shade900,
+                      color: cumplida ? Colors.green.shade400 : Colors.amber.shade700,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Objetivo: \$${meta.montoObjetivo.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: ColoresApp.textoSecundario,
+                      color: ColoresApp.subtexto(context),
                     ),
                   ),
                 ],
@@ -236,7 +242,7 @@ class MetaProgresoCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: ColoresApp.tarjetaElevada(context),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -244,11 +250,11 @@ class MetaProgresoCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.timer_outlined, size: 14, color: ColoresApp.textoSecundario),
+                      Icon(Icons.timer_outlined, size: 14, color: ColoresApp.subtexto(context)),
                       const SizedBox(width: 6),
                       Text(
                         'Quedan ${meta.diasRestantes} días',
-                        style: const TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                        style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                       ),
                     ],
                   ),

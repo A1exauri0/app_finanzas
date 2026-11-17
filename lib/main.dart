@@ -12,6 +12,7 @@ import 'constantes/colores_app.dart';
 // IMPORTACIONES DE SERVICIOS
 // ==========================================
 import 'servicios/base_datos_servicio.dart';
+import 'servicios/tema_servicio.dart';
 
 // ==========================================
 // IMPORTACIONES DE PANTALLAS
@@ -21,11 +22,14 @@ import 'pantallas/navegacion_principal_screen.dart';
 // ==========================================
 // PUNTO DE ENTRADA PRINCIPAL
 // ==========================================
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inicialización multiplataforma de SQLite (Android, iOS, Windows, Linux, macOS)
   BaseDatosServicio.inicializarFabricaSQLite();
+
+  // Cargar preferencia guardada del modo de tema
+  await TemaServicio.instancia.inicializar();
 
   runApp(const AppFinanzas());
 }
@@ -38,18 +42,18 @@ class AppFinanzas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AppFinanzas',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: ColoresApp.fondoClaro,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: ColoresApp.primarioVerde,
-          primary: ColoresApp.primarioVerde,
-        ),
-      ),
-      home: const NavegacionPrincipalScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: TemaServicio.instancia.temaModoNotifier,
+      builder: (context, modoActual, _) {
+        return MaterialApp(
+          title: 'AppFinanzas',
+          debugShowCheckedModeBanner: false,
+          themeMode: modoActual,
+          theme: ColoresApp.temaClaro(),
+          darkTheme: ColoresApp.temaOscuro(),
+          home: const NavegacionPrincipalScreen(),
+        );
+      },
     );
   }
 }

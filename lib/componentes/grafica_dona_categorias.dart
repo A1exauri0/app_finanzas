@@ -45,13 +45,13 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: ColoresApp.tarjeta(context),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
             'No hay gastos registrados para graficar.',
-            style: TextStyle(color: ColoresApp.textoSecundario),
+            style: TextStyle(color: ColoresApp.subtexto(context)),
           ),
         ),
       );
@@ -60,11 +60,13 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ColoresApp.tarjeta(context),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(
+              alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.04,
+            ),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -74,16 +76,16 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Título de la tarjeta
-          const Row(
+          Row(
             children: [
-              Icon(Icons.donut_large_rounded, color: ColoresApp.primarioVerde),
-              SizedBox(width: 8),
+              const Icon(Icons.donut_large_rounded, color: ColoresApp.primarioVerde),
+              const SizedBox(width: 8),
               Text(
                 'Distribución de Gastos',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: ColoresApp.textoPrincipal,
+                  color: ColoresApp.texto(context),
                 ),
               ),
             ],
@@ -108,11 +110,11 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Total Gastos',
                         style: TextStyle(
                           fontSize: 11,
-                          color: ColoresApp.textoSecundario,
+                          color: ColoresApp.subtexto(context),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -153,26 +155,26 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         seg.nombre,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: ColoresApp.textoPrincipal,
+                          color: ColoresApp.texto(context),
                         ),
                       ),
                     ),
                     Text(
                       '${porcentaje.toStringAsFixed(1)}% ',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: ColoresApp.textoSecundario,
+                        color: ColoresApp.subtexto(context),
                       ),
                     ),
                     Text(
                       '\$${seg.monto.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: ColoresApp.textoPrincipal,
+                        color: ColoresApp.texto(context),
                       ),
                     ),
                   ],

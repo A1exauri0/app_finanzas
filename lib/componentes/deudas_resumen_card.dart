@@ -38,12 +38,14 @@ class DeudasResumenCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: ColoresApp.tarjetaFondo,
+        color: ColoresApp.tarjeta(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.blueGrey.shade100),
+        border: Border.all(color: ColoresApp.borde(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(
+              alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
+            ),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -67,12 +69,12 @@ class DeudasResumenCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'Dinero por Cobrar (Deudas)',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: ColoresApp.textoPrincipal,
+                      color: ColoresApp.texto(context),
                     ),
                   ),
                 ],
@@ -92,9 +94,9 @@ class DeudasResumenCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Pendiente de pago',
-                    style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -109,10 +111,10 @@ class DeudasResumenCard extends StatelessWidget {
               ),
               Text(
                 '$deudoresActivos ${deudoresActivos == 1 ? "persona debe" : "personas deben"}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: ColoresApp.textoSecundario,
+                  color: ColoresApp.subtexto(context),
                 ),
               ),
             ],
@@ -128,10 +130,10 @@ class DeudasResumenCard extends StatelessWidget {
                   children: [
                     Text(
                       deuda.nombreDeudor,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: ColoresApp.textoPrincipal,
+                        color: ColoresApp.texto(context),
                       ),
                     ),
                     Text(

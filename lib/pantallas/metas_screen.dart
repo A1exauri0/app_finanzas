@@ -51,7 +51,7 @@ class _MetasScreenState extends State<MetasScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -66,7 +66,7 @@ class _MetasScreenState extends State<MetasScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -200,10 +200,16 @@ class _MetasScreenState extends State<MetasScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: ColoresApp.fondoClaro,
+      backgroundColor: ColoresApp.fondo(context),
       appBar: AppBar(
-        title: const Text('Objetivos de Compra'),
-        backgroundColor: ColoresApp.fondoClaro,
+        title: Text(
+          'Objetivos de Compra',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: ColoresApp.texto(context),
+          ),
+        ),
+        backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -251,7 +257,7 @@ class _MetasScreenState extends State<MetasScreen> {
                           ? Icons.military_tech_outlined
                           : Icons.flag_outlined,
                       size: 54,
-                      color: Colors.grey.shade400,
+                      color: ColoresApp.subtexto(context),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -259,7 +265,7 @@ class _MetasScreenState extends State<MetasScreen> {
                           ? 'Aún no has completado ninguna meta. ¡Sigue ahorrando!'
                           : 'No hay metas en esta categoría.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: ColoresApp.textoSecundario),
+                      style: TextStyle(color: ColoresApp.subtexto(context)),
                     ),
                   ],
                 ),

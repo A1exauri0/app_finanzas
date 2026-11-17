@@ -9,6 +9,12 @@ import 'package:flutter/material.dart';
 import '../constantes/colores_app.dart';
 
 // ==========================================
+// IMPORTACIONES DE SERVICIOS
+// ==========================================
+import '../servicios/tema_servicio.dart';
+
+
+// ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
@@ -58,7 +64,7 @@ class InicioScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -74,33 +80,57 @@ class InicioScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColoresApp.fondoClaro,
+      backgroundColor: ColoresApp.fondo(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Encabezado con saludo y botón de acceso a panel de finanzas
+              // Encabezado con título, alternador de modo oscuro y botón de finanzas
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      SizedBox(height: 2),
+                    children: [
+                      const SizedBox(height: 2),
                       Text(
                         'Mi Resumen Financiero',
                         style: TextStyle(
                           fontSize: 19,
                           fontWeight: FontWeight.bold,
-                          color: ColoresApp.textoPrincipal,
+                          color: ColoresApp.texto(context),
                         ),
                       ),
                     ],
                   ),
                   Row(
                     children: [
+                      // Botón para alternar Modo Claro / Oscuro
+                      InkWell(
+                        onTap: () => TemaServicio.instancia.alternarTema(context),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: ColoresApp.tarjeta(context),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: ColoresApp.borde(context)),
+                          ),
+                          child: Icon(
+                            ColoresApp.esOscuro(context)
+                                ? Icons.light_mode_rounded
+                                : Icons.dark_mode_rounded,
+                            size: 18,
+                            color: ColoresApp.esOscuro(context)
+                                ? Colors.amber
+                                : ColoresApp.texto(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
                       if (alAbrirPanelFinanzas != null)
                         InkWell(
                           onTap: alAbrirPanelFinanzas,
@@ -153,13 +183,19 @@ class InicioScreen extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: dineroDisponible >= 0
-                        ? ColoresApp.primarioVerde.withValues(alpha: 0.08)
-                        : Colors.red.shade50,
+                        ? ColoresApp.primarioVerde.withValues(
+                            alpha: ColoresApp.esOscuro(context) ? 0.18 : 0.08,
+                          )
+                        : (ColoresApp.esOscuro(context)
+                            ? Colors.red.shade900.withValues(alpha: 0.3)
+                            : Colors.red.shade50),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: dineroDisponible >= 0
                           ? ColoresApp.primarioVerde.withValues(alpha: 0.3)
-                          : Colors.red.shade300,
+                          : (ColoresApp.esOscuro(context)
+                              ? Colors.red.shade700
+                              : Colors.red.shade300),
                     ),
                   ),
                   child: Row(
@@ -178,11 +214,11 @@ class InicioScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Dinero disponible para gastar hoy:',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: ColoresApp.textoSecundario,
+                                color: ColoresApp.subtexto(context),
                               ),
                             ),
                             Text(
@@ -198,10 +234,10 @@ class InicioScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 14,
-                        color: ColoresApp.textoSecundario,
+                        color: ColoresApp.subtexto(context),
                       ),
                     ],
                   ),
@@ -218,12 +254,12 @@ class InicioScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Botones de acciones rápidas
-              const Text(
+              Text(
                 'Acciones Rápidas',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: ColoresApp.textoPrincipal,
+                  color: ColoresApp.texto(context),
                 ),
               ),
               const SizedBox(height: 12),
@@ -265,12 +301,12 @@ class InicioScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Movimientos Recientes',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: ColoresApp.textoPrincipal,
+                      color: ColoresApp.texto(context),
                     ),
                   ),
                   TextButton(onPressed: () {}, child: const Text('Ver todos')),
@@ -283,17 +319,17 @@ class InicioScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(32),
                   alignment: Alignment.center,
-                  child: const Column(
+                  child: Column(
                     children: [
                       Icon(
                         Icons.inbox_outlined,
                         size: 48,
-                        color: ColoresApp.textoSecundario,
+                        color: ColoresApp.subtexto(context),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         'Aún no hay movimientos registrados',
-                        style: TextStyle(color: ColoresApp.textoSecundario),
+                        style: TextStyle(color: ColoresApp.subtexto(context)),
                       ),
                     ],
                   ),
@@ -352,10 +388,10 @@ class _BotonAccionRapidaItem extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             etiqueta,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: ColoresApp.textoPrincipal,
+              color: ColoresApp.texto(context),
             ),
           ),
         ],

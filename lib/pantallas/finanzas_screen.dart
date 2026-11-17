@@ -9,6 +9,12 @@ import 'package:flutter/material.dart';
 import '../constantes/colores_app.dart';
 
 // ==========================================
+// IMPORTACIONES DE SERVICIOS
+// ==========================================
+import '../servicios/tema_servicio.dart';
+
+
+// ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
@@ -115,14 +121,32 @@ class FinanzasScreen extends StatelessWidget {
         : 1.0;
 
     return Scaffold(
-      backgroundColor: ColoresApp.fondoClaro,
+      backgroundColor: ColoresApp.fondo(context),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Análisis Financiero & Gráficas',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 19,
+            color: ColoresApp.texto(context),
+          ),
         ),
-        backgroundColor: ColoresApp.fondoClaro,
+        backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Alternar Modo Oscuro',
+            icon: Icon(
+              ColoresApp.esOscuro(context)
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+              color: ColoresApp.esOscuro(context)
+                  ? Colors.amber
+                  : ColoresApp.texto(context),
+            ),
+            onPressed: () => TemaServicio.instancia.alternarTema(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 40),
@@ -249,11 +273,13 @@ class FinanzasScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: ColoresApp.tarjeta(context),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withValues(
+                      alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
+                    ),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -266,7 +292,7 @@ class FinanzasScreen extends StatelessWidget {
                     children: [
                       const Icon(Icons.speed_rounded, color: ColoresApp.primarioVerde),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Capacidad de Gasto & Compromiso',
                           maxLines: 1,
@@ -274,7 +300,7 @@ class FinanzasScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: ColoresApp.textoPrincipal,
+                            color: ColoresApp.texto(context),
                           ),
                         ),
                       ),
@@ -297,7 +323,9 @@ class FinanzasScreen extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: porcentajeComprometido,
                       minHeight: 10,
-                      backgroundColor: Colors.grey.shade200,
+                      backgroundColor: ColoresApp.esOscuro(context)
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade200,
                       color: porcentajeComprometido > 0.85
                           ? ColoresApp.gastoRojo
                           : (porcentajeComprometido > 0.65 ? Colors.amber.shade700 : ColoresApp.primarioVerde),
@@ -310,7 +338,7 @@ class FinanzasScreen extends StatelessWidget {
                         : (porcentajeComprometido <= 0.85
                             ? '🟡 Precaución: Has comprometido la mayor parte de tu liquidez este mes.'
                             : '🔴 Límite crítico: Te queda muy poco margen antes de sobregirarte.'),
-                    style: const TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                   ),
                 ],
               ),
@@ -326,36 +354,59 @@ class FinanzasScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.purple.shade50,
+                      color: ColoresApp.esOscuro(context)
+                          ? Colors.purple.shade900.withValues(alpha: 0.3)
+                          : Colors.purple.shade50,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.purple.shade200),
+                      border: Border.all(
+                        color: ColoresApp.esOscuro(context)
+                            ? Colors.purple.shade700
+                            : Colors.purple.shade200,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.credit_card_rounded, color: Colors.purple, size: 18),
-                            SizedBox(width: 6),
+                            Icon(
+                              Icons.credit_card_rounded,
+                              color: ColoresApp.esOscuro(context)
+                                  ? Colors.purple.shade300
+                                  : Colors.purple,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
                             Text(
                               'Crédito Libre',
-                              style: TextStyle(fontSize: 12, color: Colors.purple, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColoresApp.esOscuro(context)
+                                    ? Colors.purple.shade300
+                                    : Colors.purple,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '\$${_creditoDisponibleTarjetas.toStringAsFixed(2)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: Colors.purple,
+                            color: ColoresApp.esOscuro(context)
+                                ? Colors.purple.shade200
+                                : Colors.purple,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Disponible en tarjetas',
-                          style: TextStyle(fontSize: 11, color: Colors.black54),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ColoresApp.subtexto(context),
+                          ),
                         ),
                       ],
                     ),
@@ -366,36 +417,59 @@ class FinanzasScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: ColoresApp.esOscuro(context)
+                          ? Colors.orange.shade900.withValues(alpha: 0.3)
+                          : Colors.orange.shade50,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.orange.shade200),
+                      border: Border.all(
+                        color: ColoresApp.esOscuro(context)
+                            ? Colors.orange.shade700
+                            : Colors.orange.shade200,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.receipt_rounded, color: Colors.deepOrange, size: 18),
-                            SizedBox(width: 6),
+                            Icon(
+                              Icons.receipt_rounded,
+                              color: ColoresApp.esOscuro(context)
+                                  ? Colors.orange.shade300
+                                  : Colors.deepOrange,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
                             Text(
                               'Deuda Total',
-                              style: TextStyle(fontSize: 12, color: Colors.deepOrange, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColoresApp.esOscuro(context)
+                                    ? Colors.orange.shade300
+                                    : Colors.deepOrange,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           '\$${_totalDeudaPendiente.toStringAsFixed(2)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: Colors.deepOrange,
+                            color: ColoresApp.esOscuro(context)
+                                ? Colors.orange.shade200
+                                : Colors.deepOrange,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Tarjetas y préstamos',
-                          style: const TextStyle(fontSize: 11, color: Colors.black54),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ColoresApp.subtexto(context),
+                          ),
                         ),
                       ],
                     ),
@@ -430,11 +504,13 @@ class FinanzasScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: ColoresApp.tarjeta(context),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withValues(
+                      alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
+                    ),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -443,16 +519,16 @@ class FinanzasScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.lightbulb_rounded, color: Colors.amber),
-                      SizedBox(width: 8),
+                      const Icon(Icons.lightbulb_rounded, color: Colors.amber),
+                      const SizedBox(width: 8),
                       Text(
                         'Recomendaciones del Asesor',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: ColoresApp.textoPrincipal,
+                          color: ColoresApp.texto(context),
                         ),
                       ),
                     ],
@@ -532,7 +608,7 @@ class _ItemConsejo extends StatelessWidget {
         Expanded(
           child: Text(
             texto,
-            style: const TextStyle(fontSize: 13, color: ColoresApp.textoPrincipal),
+            style: TextStyle(fontSize: 13, color: ColoresApp.texto(context)),
           ),
         ),
       ],

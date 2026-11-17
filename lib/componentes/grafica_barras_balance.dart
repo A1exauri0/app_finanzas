@@ -34,11 +34,13 @@ class GraficaBarrasBalanceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ColoresApp.tarjeta(context),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(
+              alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.04,
+            ),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -48,16 +50,16 @@ class GraficaBarrasBalanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Título de la tarjeta
-          const Row(
+          Row(
             children: [
-              Icon(Icons.bar_chart_rounded, color: ColoresApp.primarioVerde),
-              SizedBox(width: 8),
+              const Icon(Icons.bar_chart_rounded, color: ColoresApp.primarioVerde),
+              const SizedBox(width: 8),
               Text(
                 'Comparativa de Flujo de Dinero',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: ColoresApp.textoPrincipal,
+                  color: ColoresApp.texto(context),
                 ),
               ),
             ],
@@ -130,10 +132,10 @@ class _BarraItem extends StatelessWidget {
                 etiqueta,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: ColoresApp.textoPrincipal,
+                  color: ColoresApp.texto(context),
                 ),
               ),
             ),
@@ -153,7 +155,9 @@ class _BarraItem extends StatelessWidget {
           height: 12,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
+            color: color.withValues(
+              alpha: ColoresApp.esOscuro(context) ? 0.25 : 0.12,
+            ),
             borderRadius: BorderRadius.circular(6),
           ),
           child: FractionallySizedBox(

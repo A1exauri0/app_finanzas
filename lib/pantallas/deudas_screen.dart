@@ -83,7 +83,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -101,7 +101,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -117,7 +117,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -433,16 +433,22 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     }
 
     return Scaffold(
-      backgroundColor: ColoresApp.fondoClaro,
+      backgroundColor: ColoresApp.fondo(context),
       appBar: AppBar(
-        title: const Text('Deudas'),
-        backgroundColor: ColoresApp.fondoClaro,
+        title: Text(
+          'Deudas',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: ColoresApp.texto(context),
+          ),
+        ),
+        backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
         bottom: TabBar(
           controller: _tabControlador,
           indicatorColor: ColoresApp.primarioVerde,
           labelColor: ColoresApp.primarioVerde,
-          unselectedLabelColor: ColoresApp.textoSecundario,
+          unselectedLabelColor: ColoresApp.subtexto(context),
           tabs: const [
             Tab(icon: Icon(Icons.credit_card_rounded), text: 'Tarjetas'),
             Tab(icon: Icon(Icons.handshake_rounded), text: 'Me Deben'),
@@ -836,16 +842,19 @@ class _ListaDeudasVista extends StatelessWidget {
                           children: [
                             Text(
                               deuda.tituloOEntidad,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: ColoresApp.textoPrincipal,
+                                color: ColoresApp.texto(context),
                               ),
                             ),
                             if (deuda.historialPartidas.isNotEmpty)
                               Text(
                                 '${deuda.historialPartidas.length} registros acumulados',
-                                style: const TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: ColoresApp.subtexto(context),
+                                ),
                               ),
                           ],
                         ),
@@ -853,7 +862,7 @@ class _ListaDeudasVista extends StatelessWidget {
                     ),
                     // Menú de 3 puntos (Historial, Editar, Eliminar)
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert_rounded, color: ColoresApp.textoSecundario, size: 22),
+                      icon: Icon(Icons.more_vert_rounded, color: ColoresApp.subtexto(context), size: 22),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       onSelected: (valor) {
                         if (valor == 'historial') {
@@ -865,23 +874,23 @@ class _ListaDeudasVista extends StatelessWidget {
                         }
                       },
                       itemBuilder: (ctx) => [
-                        const PopupMenuItem<String>(
+                        PopupMenuItem<String>(
                           value: 'historial',
                           child: Row(
                             children: [
-                              Icon(Icons.history_rounded, color: ColoresApp.textoPrincipal, size: 20),
-                              SizedBox(width: 10),
-                              Text('Ver Historial Completo'),
+                              Icon(Icons.history_rounded, color: ColoresApp.texto(context), size: 20),
+                              const SizedBox(width: 10),
+                              const Text('Ver Historial Completo'),
                             ],
                           ),
                         ),
-                        const PopupMenuItem<String>(
+                        PopupMenuItem<String>(
                           value: 'editar',
                           child: Row(
                             children: [
-                              Icon(Icons.edit_note_rounded, color: ColoresApp.textoPrincipal, size: 20),
-                              SizedBox(width: 10),
-                              Text('Editar Registro'),
+                              Icon(Icons.edit_note_rounded, color: ColoresApp.texto(context), size: 20),
+                              const SizedBox(width: 10),
+                              const Text('Editar Registro'),
                             ],
                           ),
                         ),
@@ -916,14 +925,14 @@ class _ListaDeudasVista extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Total prestado/acumulado', style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario)),
-                        Text('\$${deuda.montoTotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text('Total prestado/acumulado', style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context))),
+                        Text('\$${deuda.montoTotal.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.w600, color: ColoresApp.texto(context))),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Falta por pagar', style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario)),
+                        Text('Falta por pagar', style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context))),
                         Text(
                           '\$${deuda.montoPendiente.toStringAsFixed(2)}',
                           style: TextStyle(

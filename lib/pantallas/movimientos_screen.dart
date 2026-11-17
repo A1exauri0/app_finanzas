@@ -186,7 +186,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -234,13 +234,17 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
     final movimientosAgrupados = _agruparMovimientosPorFecha(movimientos);
 
     return Scaffold(
-      backgroundColor: ColoresApp.fondoClaro,
+      backgroundColor: ColoresApp.fondo(context),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Historial de Movimientos',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: ColoresApp.texto(context),
+          ),
         ),
-        backgroundColor: ColoresApp.fondoClaro,
+        backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
         centerTitle: false,
       ),
@@ -251,25 +255,27 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: TextField(
               controller: _busquedaControlador,
+              style: TextStyle(color: ColoresApp.texto(context)),
               decoration: InputDecoration(
                 hintText: 'Buscar por concepto, categoría o tarjeta...',
-                prefixIcon: const Icon(Icons.search_rounded, color: ColoresApp.textoSecundario),
+                hintStyle: TextStyle(color: ColoresApp.subtexto(context)),
+                prefixIcon: Icon(Icons.search_rounded, color: ColoresApp.subtexto(context)),
                 suffixIcon: _terminoBusqueda.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, color: ColoresApp.textoSecundario),
+                        icon: Icon(Icons.clear_rounded, color: ColoresApp.subtexto(context)),
                         onPressed: () => _busquedaControlador.clear(),
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: ColoresApp.tarjeta(context),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
+                  borderSide: BorderSide(color: ColoresApp.borde(context)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
+                  borderSide: BorderSide(color: ColoresApp.borde(context)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -325,11 +331,13 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: ColoresApp.tarjeta(context),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withValues(
+                      alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
+                    ),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -342,13 +350,13 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.arrow_downward_rounded, size: 14, color: ColoresApp.ingresoVerde),
-                            SizedBox(width: 4),
+                            const Icon(Icons.arrow_downward_rounded, size: 14, color: ColoresApp.ingresoVerde),
+                            const SizedBox(width: 4),
                             Text(
                               'Ingresos',
-                              style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                              style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                             ),
                           ],
                         ),
@@ -365,7 +373,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                     ),
                   ),
 
-                  Container(width: 1, height: 35, color: Colors.grey.shade200),
+                  Container(width: 1, height: 35, color: ColoresApp.borde(context)),
 
                   // Gastos del filtro
                   Expanded(
@@ -374,13 +382,13 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.arrow_upward_rounded, size: 14, color: ColoresApp.gastoRojo),
-                              SizedBox(width: 4),
+                              const Icon(Icons.arrow_upward_rounded, size: 14, color: ColoresApp.gastoRojo),
+                              const SizedBox(width: 4),
                               Text(
                                 'Gastos',
-                                style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                                style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                               ),
                             ],
                           ),
@@ -398,7 +406,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                     ),
                   ),
 
-                  Container(width: 1, height: 35, color: Colors.grey.shade200),
+                  Container(width: 1, height: 35, color: ColoresApp.borde(context)),
 
                   // Balance neto
                   Expanded(
@@ -407,9 +415,9 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Balance Neto',
-                            style: TextStyle(fontSize: 12, color: ColoresApp.textoSecundario),
+                            style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -512,22 +520,22 @@ class _ChipFiltro extends StatelessWidget {
       avatar: Icon(
         icono,
         size: 16,
-        color: estaSeleccionado ? Colors.white : ColoresApp.textoSecundario,
+        color: estaSeleccionado ? Colors.white : ColoresApp.subtexto(context),
       ),
       label: Text(
         etiqueta,
         style: TextStyle(
           fontSize: 13,
           fontWeight: estaSeleccionado ? FontWeight.bold : FontWeight.normal,
-          color: estaSeleccionado ? Colors.white : ColoresApp.textoPrincipal,
+          color: estaSeleccionado ? Colors.white : ColoresApp.texto(context),
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: ColoresApp.tarjeta(context),
       selectedColor: colorPrincipal,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: estaSeleccionado ? colorPrincipal : Colors.grey.shade200,
+          color: estaSeleccionado ? colorPrincipal : ColoresApp.borde(context),
         ),
       ),
       onSelected: (_) => alSeleccionar(),
@@ -559,7 +567,7 @@ class _EstadoVacioMovimientos extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: ColoresApp.tarjetaElevada(context),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -567,7 +575,7 @@ class _EstadoVacioMovimientos extends StatelessWidget {
                     ? Icons.search_off_rounded
                     : Icons.receipt_long_outlined,
                 size: 54,
-                color: ColoresApp.textoSecundario,
+                color: ColoresApp.subtexto(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -575,10 +583,10 @@ class _EstadoVacioMovimientos extends StatelessWidget {
               terminoBusqueda.isNotEmpty
                   ? 'Sin coincidencias para "$terminoBusqueda"'
                   : 'No hay movimientos en esta vista',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: ColoresApp.textoPrincipal,
+                color: ColoresApp.texto(context),
               ),
               textAlign: TextAlign.center,
             ),
@@ -587,7 +595,7 @@ class _EstadoVacioMovimientos extends StatelessWidget {
               terminoBusqueda.isNotEmpty
                   ? 'Prueba con otro término de búsqueda o restablece los filtros.'
                   : 'Registra un ingreso o gasto usando el botón (+) central.',
-              style: const TextStyle(fontSize: 13, color: ColoresApp.textoSecundario),
+              style: TextStyle(fontSize: 13, color: ColoresApp.subtexto(context)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),

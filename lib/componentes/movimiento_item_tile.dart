@@ -35,11 +35,13 @@ class MovimientoItemTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: ColoresApp.tarjetaFondo,
+        color: ColoresApp.tarjeta(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(
+              alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
+            ),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -55,39 +57,50 @@ class MovimientoItemTile extends StatelessWidget {
         ),
         title: Text(
           movimiento.titulo,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,
-            color: ColoresApp.textoPrincipal,
+            color: ColoresApp.texto(context),
           ),
         ),
         subtitle: Row(
           children: [
             Text(
               movimiento.categoria,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: ColoresApp.textoSecundario,
+                color: ColoresApp.subtexto(context),
               ),
             ),
-            if (movimiento.pagadoConTarjeta && movimiento.nombreTarjetaUtilizada != null) ...[
+            if (movimiento.pagadoConTarjeta &&
+                movimiento.nombreTarjetaUtilizada != null) ...[
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
+                  color: ColoresApp.esOscuro(context)
+                      ? Colors.purple.shade900.withValues(alpha: 0.4)
+                      : Colors.purple.shade50,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.credit_card_rounded, size: 12, color: Colors.purple),
+                    Icon(
+                      Icons.credit_card_rounded,
+                      size: 12,
+                      color: ColoresApp.esOscuro(context)
+                          ? Colors.purple.shade200
+                          : Colors.purple,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       movimiento.nombreTarjetaUtilizada!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Colors.purple,
+                        color: ColoresApp.esOscuro(context)
+                            ? Colors.purple.shade200
+                            : Colors.purple,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

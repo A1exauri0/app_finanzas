@@ -75,14 +75,32 @@ class BaseDatosServicio {
       rutaCompleta = p.join(rutaDirectorio, 'finanzas_locales.db');
     }
 
-    return await fabrica.openDatabase(
+    final db = await fabrica.openDatabase(
       rutaCompleta,
       options: sqflite.OpenDatabaseOptions(version: 1, onCreate: _crearTablas),
     );
+
+    // Aseguramos que la tabla de configuraciones exista para preferencias
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS configuraciones (
+        clave TEXT PRIMARY KEY,
+        valor TEXT NOT NULL
+      )
+    ''');
+
+    return db;
   }
 
   // Creación del esquema relacional
   Future<void> _crearTablas(sqflite.Database db, int version) async {
+    // 0. Tabla de Configuraciones y Preferencias
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS configuraciones (
+        clave TEXT PRIMARY KEY,
+        valor TEXT NOT NULL
+      )
+    ''');
+
     // 1. Tabla de Movimientos
     await db.execute('''
       CREATE TABLE movimientos (
@@ -302,5 +320,30 @@ class BaseDatosServicio {
   Future<void> eliminarMeta(String id) async {
     final db = await database;
     await db.delete('metas', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ==========================================
+  // OPERACIONES: CONFIGURACIONES GENERALES
+  // ==========================================
+  Future<void> guardarConfiguracion(String clave, String valor) async {
+    final db = await database;
+    await db.insert(
+      'configuraciones',
+      {'clave': clave, 'valor': valor},
+      conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<String?> obtenerConfiguracion(String clave) async {
+    final db = await database;
+    final List<Map<String, dynamic>> res = await db.query(
+      'configuraciones',
+      where: 'clave = ?',
+      whereArgs: [clave],
+    );
+    if (res.isNotEmpty) {
+      return res.first['valor'] as String?;
+    }
+    return null;
   }
 }
