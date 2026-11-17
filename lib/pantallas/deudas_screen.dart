@@ -22,7 +22,6 @@ import '../componentes/modales/nueva_deuda_modal.dart';
 import '../componentes/modales/editar_tarjeta_modal.dart';
 import '../componentes/modales/editar_deuda_persona_modal.dart';
 
-
 // ==========================================
 // PANTALLA: CONTROL DE DEUDAS Y TARJETAS
 // ==========================================
@@ -35,7 +34,8 @@ class DeudasScreen extends StatefulWidget {
   final Function(String idDeuda) alEliminarDeuda;
   final Function(String idDeuda, double montoAbono) alAbonarDeuda;
   final Function(String idTarjeta, int nuevoDiaCorte) alEditarDiaCorte;
-  final Function(String idDeuda, String concepto, double monto, DateTime fecha) alAcumularPrestamo;
+  final Function(String idDeuda, String concepto, double monto, DateTime fecha)
+  alAcumularPrestamo;
   final VoidCallback alPulsarNuevoGastoFijo;
   final Function(GastoFijoModelo) alMarcarGastoFijoPagado;
   final Function(GastoFijoModelo) alEditarGastoFijo;
@@ -62,7 +62,8 @@ class DeudasScreen extends StatefulWidget {
   State<DeudasScreen> createState() => _DeudasScreenState();
 }
 
-class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderStateMixin {
+class _DeudasScreenState extends State<DeudasScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabControlador;
 
   @override
@@ -164,13 +165,17 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: ColoresApp.gastoRojo),
+            style: FilledButton.styleFrom(
+              backgroundColor: ColoresApp.gastoRojo,
+            ),
             onPressed: () {
               widget.alEliminarDeuda(deuda.id);
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Registro de "${deuda.tituloOEntidad}" eliminado'),
+                  content: Text(
+                    'Registro de "${deuda.tituloOEntidad}" eliminado',
+                  ),
                   backgroundColor: ColoresApp.gastoRojo,
                 ),
               );
@@ -187,7 +192,8 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     final DateTime ahora = DateTime.now();
     final DateTime? fechaElegida = await showDatePicker(
       context: context,
-      helpText: 'NUEVO DÍA DE CORTE PARA ${tarjeta.tituloOEntidad.toUpperCase()}',
+      helpText:
+          'NUEVO DÍA DE CORTE PARA ${tarjeta.tituloOEntidad.toUpperCase()}',
       initialDate: DateTime(ahora.year, ahora.month, tarjeta.diaCorte ?? 15),
       firstDate: DateTime(ahora.year, ahora.month, 1),
       lastDate: DateTime(ahora.year, ahora.month, 31),
@@ -215,18 +221,26 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(esTarjeta
-            ? 'Pagar Tarjeta ${deuda.tituloOEntidad}'
-            : (esMeDeben ? 'Registrar Cobro a ${deuda.tituloOEntidad}' : 'Pagar a ${deuda.tituloOEntidad}')),
+        title: Text(
+          esTarjeta
+              ? 'Pagar Tarjeta ${deuda.tituloOEntidad}'
+              : (esMeDeben
+                    ? 'Registrar Cobro a ${deuda.tituloOEntidad}'
+                    : 'Pagar a ${deuda.tituloOEntidad}'),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Saldo actual pendiente: \$${deuda.montoPendiente.toStringAsFixed(2)}'),
+            Text(
+              'Saldo actual pendiente: \$${deuda.montoPendiente.toStringAsFixed(2)}',
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: abonoControlador,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               autofocus: true,
               decoration: const InputDecoration(
                 labelText: 'Monto a pagar o abonar (\$)',
@@ -243,13 +257,17 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
           ),
           FilledButton(
             onPressed: () {
-              final double? monto = double.tryParse(abonoControlador.text.replaceAll(',', ''));
+              final double? monto = double.tryParse(
+                abonoControlador.text.replaceAll(',', ''),
+              );
               if (monto != null && monto > 0) {
                 widget.alAbonarDeuda(deuda.id, monto);
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Pago de \$${monto.toStringAsFixed(2)} registrado con éxito'),
+                    content: Text(
+                      'Pago de \$${monto.toStringAsFixed(2)} registrado con éxito',
+                    ),
                     backgroundColor: ColoresApp.primarioVerde,
                   ),
                 );
@@ -269,7 +287,10 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            CircleAvatar(radius: 12, backgroundColor: tarjeta.colorTarjeta ?? Colors.purple),
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: tarjeta.colorTarjeta ?? Colors.purple,
+            ),
             const SizedBox(width: 8),
             Expanded(child: Text('Historial: ${tarjeta.tituloOEntidad}')),
           ],
@@ -282,7 +303,10 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
             children: [
               Text(
                 'Saldo actual a pagar: \$${tarjeta.montoPendiente.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
               const SizedBox(height: 12),
               const Divider(),
@@ -309,15 +333,24 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
                           radius: 14,
-                          backgroundColor: p.esAbono ? Colors.green.shade50 : Colors.purple.shade50,
+                          backgroundColor: p.esAbono
+                              ? Colors.green.shade50
+                              : Colors.purple.shade50,
                           child: Icon(
-                            p.esAbono ? Icons.arrow_downward_rounded : Icons.shopping_bag_outlined,
+                            p.esAbono
+                                ? Icons.arrow_downward_rounded
+                                : Icons.shopping_bag_outlined,
                             size: 14,
                             color: p.esAbono ? Colors.green : Colors.purple,
                           ),
                         ),
-                        title: Text(p.concepto, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text('${p.fecha.day}/${p.fecha.month}/${p.fecha.year}'),
+                        title: Text(
+                          p.concepto,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${p.fecha.day}/${p.fecha.month}/${p.fecha.year}',
+                        ),
                         trailing: Text(
                           '${p.esAbono ? "-" : "+"}\$${p.monto.toStringAsFixed(2)}',
                           style: TextStyle(
@@ -362,7 +395,10 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
             children: [
               Text(
                 'Saldo pendiente total: \$${persona.montoPendiente.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
               const SizedBox(height: 12),
               const Divider(),
@@ -389,20 +425,33 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
                           radius: 14,
-                          backgroundColor: p.esAbono ? Colors.green.shade50 : Colors.orange.shade50,
+                          backgroundColor: p.esAbono
+                              ? Colors.green.shade50
+                              : Colors.orange.shade50,
                           child: Icon(
-                            p.esAbono ? Icons.arrow_downward_rounded : Icons.add_rounded,
+                            p.esAbono
+                                ? Icons.arrow_downward_rounded
+                                : Icons.add_rounded,
                             size: 14,
-                            color: p.esAbono ? Colors.green : Colors.orange.shade800,
+                            color: p.esAbono
+                                ? Colors.green
+                                : Colors.orange.shade800,
                           ),
                         ),
-                        title: Text(p.concepto, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        subtitle: Text('${p.fecha.day}/${p.fecha.month}/${p.fecha.year}'),
+                        title: Text(
+                          p.concepto,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          '${p.fecha.day}/${p.fecha.month}/${p.fecha.year}',
+                        ),
                         trailing: Text(
                           '${p.esAbono ? "-" : "+"}\$${p.monto.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: p.esAbono ? Colors.green : Colors.orange.shade900,
+                            color: p.esAbono
+                                ? Colors.green
+                                : Colors.orange.shade900,
                           ),
                         ),
                       );
@@ -424,12 +473,15 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final List<DeudaModelo> tarjetas =
-        widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito).toList();
-    final List<DeudaModelo> meDeben =
-        widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.meDeben).toList();
-    final List<DeudaModelo> debo =
-        widget.listaDeudas.where((d) => d.tipoDeuda == TipoDeuda.debo).toList();
+    final List<DeudaModelo> tarjetas = widget.listaDeudas
+        .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
+        .toList();
+    final List<DeudaModelo> meDeben = widget.listaDeudas
+        .where((d) => d.tipoDeuda == TipoDeuda.meDeben)
+        .toList();
+    final List<DeudaModelo> debo = widget.listaDeudas
+        .where((d) => d.tipoDeuda == TipoDeuda.debo)
+        .toList();
 
     // Configuración dinámica del botón según la pestaña
     String textoBoton;
@@ -439,7 +491,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
     if (_tabControlador.index == 0) {
       textoBoton = 'Nueva Tarjeta';
       iconoBoton = Icons.credit_card_rounded;
-      colorBoton = Colors.purple.shade700;
+      colorBoton = Colors.yellow.shade700;
     } else if (_tabControlador.index == 1) {
       textoBoton = 'Nuevo Préstamo (Me Deben)';
       iconoBoton = Icons.handshake_rounded;
@@ -510,7 +562,12 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
           ),
           // Vista 4: Suscripciones y Gastos Fijos
           SingleChildScrollView(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 90),
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 90,
+            ),
             child: GastosFijosResumenCard(
               listaGastosFijos: widget.listaGastosFijos,
               alPulsarNuevoGastoFijo: widget.alPulsarNuevoGastoFijo,
@@ -527,7 +584,13 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
           onPressed: _mostrarModalSegunPestana,
           backgroundColor: colorBoton,
           icon: Icon(iconoBoton, color: Colors.white),
-          label: Text(textoBoton, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          label: Text(
+            textoBoton,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );
@@ -561,7 +624,11 @@ class _ListaTarjetasVista extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.credit_card_off_rounded, size: 54, color: Colors.grey.shade400),
+            Icon(
+              Icons.credit_card_off_rounded,
+              size: 54,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 12),
             const Text(
               'No tienes tarjetas registradas',
@@ -584,10 +651,7 @@ class _ListaTarjetasVista extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                colorBase,
-                colorBase.withValues(alpha: 0.8),
-              ],
+              colors: [colorBase, colorBase.withValues(alpha: 0.8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -609,7 +673,11 @@ class _ListaTarjetasVista extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.credit_card_rounded, color: Colors.white, size: 26),
+                      const Icon(
+                        Icons.credit_card_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         tarjeta.tituloOEntidad,
@@ -629,7 +697,10 @@ class _ListaTarjetasVista extends StatelessWidget {
                         onTap: () => alPulsarEditarCorte(tarjeta),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white24,
                             borderRadius: BorderRadius.circular(12),
@@ -637,7 +708,11 @@ class _ListaTarjetasVista extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.edit_calendar_rounded, size: 14, color: Colors.white),
+                              const Icon(
+                                Icons.edit_calendar_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 5),
                               Text(
                                 tarjeta.diaCorte != null
@@ -655,8 +730,14 @@ class _ListaTarjetasVista extends StatelessWidget {
                       ),
                       // Menú desplegable con 3 puntos (Historial, Editar, Eliminar)
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert_rounded, color: Colors.white, size: 22),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         onSelected: (valor) {
                           if (valor == 'historial') {
                             alPulsarVerHistorial(tarjeta);
@@ -671,7 +752,11 @@ class _ListaTarjetasVista extends StatelessWidget {
                             value: 'historial',
                             child: Row(
                               children: [
-                                Icon(Icons.history_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                                Icon(
+                                  Icons.history_rounded,
+                                  color: ColoresApp.textoPrincipal,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
                                 Text('Ver Historial de Pagos'),
                               ],
@@ -681,7 +766,11 @@ class _ListaTarjetasVista extends StatelessWidget {
                             value: 'editar',
                             child: Row(
                               children: [
-                                Icon(Icons.tune_rounded, color: ColoresApp.textoPrincipal, size: 20),
+                                Icon(
+                                  Icons.tune_rounded,
+                                  color: ColoresApp.textoPrincipal,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
                                 Text('Editar Parámetros y Límites'),
                               ],
@@ -691,9 +780,16 @@ class _ListaTarjetasVista extends StatelessWidget {
                             value: 'eliminar',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline_rounded, color: ColoresApp.gastoRojo, size: 20),
+                                Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: ColoresApp.gastoRojo,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
-                                Text('Eliminar Tarjeta', style: TextStyle(color: ColoresApp.gastoRojo)),
+                                Text(
+                                  'Eliminar Tarjeta',
+                                  style: TextStyle(color: ColoresApp.gastoRojo),
+                                ),
                               ],
                             ),
                           ),
@@ -752,7 +848,10 @@ class _ListaTarjetasVista extends StatelessWidget {
               // Barra de consumo de crédito
               LinearProgressIndicator(
                 value: tarjeta.limiteEfectivo > 0
-                    ? (tarjeta.montoPendiente / tarjeta.limiteEfectivo).clamp(0.0, 1.0)
+                    ? (tarjeta.montoPendiente / tarjeta.limiteEfectivo).clamp(
+                        0.0,
+                        1.0,
+                      )
                     : 0.0,
                 backgroundColor: Colors.white24,
                 color: Colors.white,
@@ -769,15 +868,23 @@ class _ListaTarjetasVista extends StatelessWidget {
                     'Límite Banco: \$${tarjeta.montoTotal.toStringAsFixed(0)}',
                     style: const TextStyle(color: Colors.white60, fontSize: 11),
                   ),
-                  if (tarjeta.limiteAjustado != null && tarjeta.limiteAjustado! > 0)
+                  if (tarjeta.limiteAjustado != null &&
+                      tarjeta.limiteAjustado! > 0)
                     Text(
                       'Tope Personal: \$${tarjeta.limiteAjustado!.toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.amberAccent,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   if (tarjeta.fechaLimitePago != null)
                     Text(
                       'Pagar antes: ${tarjeta.fechaLimitePago!.day}/${tarjeta.fechaLimitePago!.month}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
                     ),
                 ],
               ),
@@ -788,14 +895,23 @@ class _ListaTarjetasVista extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () => alPulsarPagar(tarjeta),
-                  icon: const Icon(Icons.payment_rounded, color: Colors.black87, size: 18),
+                  icon: const Icon(
+                    Icons.payment_rounded,
+                    color: Colors.black87,
+                    size: 18,
+                  ),
                   label: const Text(
                     'Pagar o Abonar Tarjeta',
-                    style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -834,7 +950,11 @@ class _ListaDeudasVista extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_circle_outline_rounded, size: 54, color: Colors.grey.shade400),
+            Icon(
+              Icons.check_circle_outline_rounded,
+              size: 54,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 12),
             Text(
               tipo == TipoDeuda.meDeben
@@ -856,7 +976,9 @@ class _ListaDeudasVista extends StatelessWidget {
 
         return Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           margin: const EdgeInsets.symmetric(vertical: 8),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -869,10 +991,16 @@ class _ListaDeudasVista extends StatelessWidget {
                     Row(
                       children: [
                         CircleAvatar(
-                          backgroundColor: esMeDeben ? Colors.green.shade50 : Colors.red.shade50,
+                          backgroundColor: esMeDeben
+                              ? Colors.green.shade50
+                              : Colors.red.shade50,
                           child: Icon(
-                            esMeDeben ? Icons.person_pin_rounded : Icons.account_balance_rounded,
-                            color: esMeDeben ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo,
+                            esMeDeben
+                                ? Icons.person_pin_rounded
+                                : Icons.account_balance_rounded,
+                            color: esMeDeben
+                                ? ColoresApp.ingresoVerde
+                                : ColoresApp.gastoRojo,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -901,8 +1029,14 @@ class _ListaDeudasVista extends StatelessWidget {
                     ),
                     // Menú de 3 puntos (Historial, Editar, Eliminar)
                     PopupMenuButton<String>(
-                      icon: Icon(Icons.more_vert_rounded, color: ColoresApp.subtexto(context), size: 22),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      icon: Icon(
+                        Icons.more_vert_rounded,
+                        color: ColoresApp.subtexto(context),
+                        size: 22,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       onSelected: (valor) {
                         if (valor == 'historial') {
                           alPulsarVerHistorial(deuda);
@@ -917,7 +1051,11 @@ class _ListaDeudasVista extends StatelessWidget {
                           value: 'historial',
                           child: Row(
                             children: [
-                              Icon(Icons.history_rounded, color: ColoresApp.texto(context), size: 20),
+                              Icon(
+                                Icons.history_rounded,
+                                color: ColoresApp.texto(context),
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               const Text('Ver Historial Completo'),
                             ],
@@ -927,7 +1065,11 @@ class _ListaDeudasVista extends StatelessWidget {
                           value: 'editar',
                           child: Row(
                             children: [
-                              Icon(Icons.edit_note_rounded, color: ColoresApp.texto(context), size: 20),
+                              Icon(
+                                Icons.edit_note_rounded,
+                                color: ColoresApp.texto(context),
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               const Text('Editar Registro'),
                             ],
@@ -937,9 +1079,16 @@ class _ListaDeudasVista extends StatelessWidget {
                           value: 'eliminar',
                           child: Row(
                             children: [
-                              Icon(Icons.delete_outline_rounded, color: ColoresApp.gastoRojo, size: 20),
+                              Icon(
+                                Icons.delete_outline_rounded,
+                                color: ColoresApp.gastoRojo,
+                                size: 20,
+                              ),
                               SizedBox(width: 10),
-                              Text('Eliminar Registro', style: TextStyle(color: ColoresApp.gastoRojo)),
+                              Text(
+                                'Eliminar Registro',
+                                style: TextStyle(color: ColoresApp.gastoRojo),
+                              ),
                             ],
                           ),
                         ),
@@ -952,7 +1101,9 @@ class _ListaDeudasVista extends StatelessWidget {
                 LinearProgressIndicator(
                   value: deuda.porcentajePagado,
                   backgroundColor: Colors.grey.shade200,
-                  color: esMeDeben ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo,
+                  color: esMeDeben
+                      ? ColoresApp.ingresoVerde
+                      : ColoresApp.gastoRojo,
                   borderRadius: BorderRadius.circular(8),
                   minHeight: 7,
                 ),
@@ -964,14 +1115,32 @@ class _ListaDeudasVista extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Total prestado/acumulado', style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context))),
-                        Text('\$${deuda.montoTotal.toStringAsFixed(2)}', style: TextStyle(fontWeight: FontWeight.w600, color: ColoresApp.texto(context))),
+                        Text(
+                          'Total prestado/acumulado',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: ColoresApp.subtexto(context),
+                          ),
+                        ),
+                        Text(
+                          '\$${deuda.montoTotal.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: ColoresApp.texto(context),
+                          ),
+                        ),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Falta por pagar', style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context))),
+                        Text(
+                          'Falta por pagar',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: ColoresApp.subtexto(context),
+                          ),
+                        ),
                         Text(
                           '\$${deuda.montoPendiente.toStringAsFixed(2)}',
                           style: TextStyle(
@@ -979,7 +1148,9 @@ class _ListaDeudasVista extends StatelessWidget {
                             fontSize: 16,
                             color: deuda.estaSaldada
                                 ? ColoresApp.ingresoVerde
-                                : (esMeDeben ? Colors.amber.shade900 : ColoresApp.gastoRojo),
+                                : (esMeDeben
+                                      ? Colors.amber.shade900
+                                      : ColoresApp.gastoRojo),
                           ),
                         ),
                       ],
@@ -995,9 +1166,13 @@ class _ListaDeudasVista extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () => alPulsarAbonar(deuda),
                           icon: const Icon(Icons.price_check_rounded, size: 18),
-                          label: Text(esMeDeben ? 'Registrar Cobro' : 'Abonar a Deuda'),
+                          label: Text(
+                            esMeDeben ? 'Registrar Cobro' : 'Abonar a Deuda',
+                          ),
                           style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),

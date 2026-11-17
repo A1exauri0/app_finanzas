@@ -273,8 +273,10 @@ void main() {
 
     expect(find.text('Nuevo Gasto Fijo o Mensual'), findsOneWidget);
 
-    // Usamos sugerencia rápida de Spotify (\$129)
-    await tester.tap(find.text('Spotify (\$129)'));
+    // Ingresamos el nombre y monto directamente en los campos de texto
+    final camposGastoFijo = find.byType(TextFormField);
+    await tester.enterText(camposGastoFijo.first, 'Spotify');
+    await tester.enterText(camposGastoFijo.at(1), '129');
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Registrar Gasto Fijo'));

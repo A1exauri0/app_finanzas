@@ -79,16 +79,6 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
     },
   ];
 
-  // Sugerencias rápidas populares
-  static const List<Map<String, dynamic>> _sugerenciasPopulares = [
-    {'nombre': 'Spotify', 'monto': '129', 'categoria': 'Suscripciones / Streaming', 'dia': 5},
-    {'nombre': 'Meli+', 'monto': '149', 'categoria': 'Suscripciones / Streaming', 'dia': 10},
-    {'nombre': 'Netflix', 'monto': '219', 'categoria': 'Suscripciones / Streaming', 'dia': 15},
-    {'nombre': 'Corte de Cabello', 'monto': '150', 'categoria': 'Cuidado Personal / Estilo', 'dia': 1},
-    {'nombre': 'Internet Hogar', 'monto': '550', 'categoria': 'Servicios del Hogar', 'dia': 18},
-    {'nombre': 'Gimnasio', 'monto': '450', 'categoria': 'Gimnasio / Deporte', 'dia': 1},
-  ];
-
   late String _categoriaSeleccionada;
   late IconData _iconoSeleccionado;
   late Color _colorSeleccionado;
@@ -137,26 +127,11 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
     super.dispose();
   }
 
-  // Aplicar sugerencia rápida
-  void _aplicarSugerencia(Map<String, dynamic> sugerencia) {
-    setState(() {
-      _nombreControlador.text = sugerencia['nombre'] as String;
-      _montoControlador.text = sugerencia['monto'] as String;
-      _diaPagoSeleccionado = sugerencia['dia'] as int;
-
-      final catMatch = _categoriasDisponibles.firstWhere(
-        (c) => c['nombre'] == sugerencia['categoria'],
-        orElse: () => _categoriasDisponibles.first,
-      );
-      _categoriaSeleccionada = catMatch['nombre'] as String;
-      _iconoSeleccionado = catMatch['icono'] as IconData;
-      _colorSeleccionado = catMatch['color'] as Color;
-    });
-  }
-
   void _guardar() {
     if (_formularioClave.currentState?.validate() ?? false) {
-      final double monto = double.parse(_montoControlador.text.replaceAll(',', ''));
+      final double monto = double.parse(
+        _montoControlador.text.replaceAll(',', ''),
+      );
 
       String? nombreTarjeta;
       if (_pagarConTarjeta && _tarjetaSeleccionadaId != null) {
@@ -168,14 +143,17 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
       }
 
       final nuevoGastoFijo = GastoFijoModelo(
-        id: widget.gastoFijoParaEditar?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id:
+            widget.gastoFijoParaEditar?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         nombre: _nombreControlador.text.trim(),
         monto: monto,
         diaPago: _diaPagoSeleccionado,
         categoria: _categoriaSeleccionada,
         icono: _iconoSeleccionado,
         color: _colorSeleccionado,
-        pagarConTarjeta: _pagarConTarjeta && _tarjetasCreditoDisponibles.isNotEmpty,
+        pagarConTarjeta:
+            _pagarConTarjeta && _tarjetasCreditoDisponibles.isNotEmpty,
         idTarjeta: _pagarConTarjeta ? _tarjetaSeleccionadaId : null,
         nombreTarjeta: _pagarConTarjeta ? nombreTarjeta : null,
         ultimoMesPagado: widget.gastoFijoParaEditar?.ultimoMesPagado,
@@ -217,7 +195,9 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
 
               // Título del modal
               Text(
-                _esModoEdicion ? 'Editar Gasto Fijo / Suscripción' : 'Nuevo Gasto Fijo o Mensual',
+                _esModoEdicion
+                    ? 'Editar Gasto Fijo / Suscripción'
+                    : 'Nuevo Gasto Fijo o Mensual',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -225,32 +205,7 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 14),
-
-              // Chips de sugerencias rápidas (solo en modo creación)
-              if (!_esModoEdicion) ...[
-                Text(
-                  'Sugerencias rápidas:',
-                  style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
-                ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _sugerenciasPopulares.map((s) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ActionChip(
-                          avatar: const Icon(Icons.flash_on_rounded, size: 14),
-                          label: Text('${s['nombre']} (\$${s['monto']})'),
-                          onPressed: () => _aplicarSugerencia(s),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+              const SizedBox(height: 20),
 
               // Campo de Nombre / Servicio
               TextFormField(
@@ -273,7 +228,9 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
               // Campo de Monto
               TextFormField(
                 controller: _montoControlador,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'Monto a pagar mensual (\$)',
                   prefixIcon: Icon(Icons.attach_money_rounded),
@@ -327,7 +284,11 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                     value: cat['nombre'] as String,
                     child: Row(
                       children: [
-                        Icon(cat['icono'] as IconData, size: 20, color: cat['color'] as Color),
+                        Icon(
+                          cat['icono'] as IconData,
+                          size: 20,
+                          color: cat['color'] as Color,
+                        ),
                         const SizedBox(width: 10),
                         Text(cat['nombre'] as String),
                       ],
@@ -336,7 +297,9 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                 }).toList(),
                 onChanged: (nuevaCat) {
                   if (nuevaCat != null) {
-                    final item = _categoriasDisponibles.firstWhere((c) => c['nombre'] == nuevaCat);
+                    final item = _categoriasDisponibles.firstWhere(
+                      (c) => c['nombre'] == nuevaCat,
+                    );
                     setState(() {
                       _categoriaSeleccionada = item['nombre'] as String;
                       _iconoSeleccionado = item['icono'] as IconData;
@@ -351,12 +314,17 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
               if (_tarjetasCreditoDisponibles.isNotEmpty) ...[
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Domiciliar o pagar con Tarjeta de Crédito'),
+                  title: const Text(
+                    'Domiciliar o pagar con Tarjeta de Crédito',
+                  ),
                   subtitle: Text(
                     _pagarConTarjeta
                         ? 'Se cargará a la tarjeta seleccionada'
                         : 'Se pagará con efectivo / débito',
-                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: ColoresApp.subtexto(context),
+                    ),
                   ),
                   value: _pagarConTarjeta,
                   activeThumbColor: ColoresApp.primarioVerde,
@@ -365,7 +333,9 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                 if (_pagarConTarjeta) ...[
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue: _tarjetaSeleccionadaId ?? _tarjetasCreditoDisponibles.first.id,
+                    initialValue:
+                        _tarjetaSeleccionadaId ??
+                        _tarjetasCreditoDisponibles.first.id,
                     decoration: const InputDecoration(
                       labelText: 'Selecciona la Tarjeta de Crédito',
                       prefixIcon: Icon(Icons.credit_card_rounded),
@@ -393,11 +363,16 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                 style: FilledButton.styleFrom(
                   backgroundColor: _colorSeleccionado,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text(
                   _esModoEdicion ? 'Guardar Cambios' : 'Registrar Gasto Fijo',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
