@@ -13,7 +13,6 @@ import '../constantes/colores_app.dart';
 // ==========================================
 import '../servicios/tema_servicio.dart';
 
-
 // ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
@@ -26,7 +25,6 @@ import '../modelos/deuda_modelo.dart';
 import '../componentes/cards/balance_card.dart';
 import '../componentes/cards/movimiento_item_tile.dart';
 import '../componentes/modales/nuevo_movimiento_modal.dart';
-
 
 // ==========================================
 // PANTALLA PRINCIPAL: INICIO
@@ -57,8 +55,6 @@ class InicioScreen extends StatelessWidget {
   double get _totalGastos => listaMovimientos
       .where((m) => m.tipo == TipoMovimiento.gasto)
       .fold(0.0, (acumulado, m) => acumulado + m.monto);
-
-  double get _saldoTotal => _totalIngresos - _totalGastos;
 
   // Función para abrir el modal de nuevo movimiento
   void _mostrarModalRegistro(BuildContext context, TipoMovimiento tipoInicial) {
@@ -110,14 +106,17 @@ class InicioScreen extends StatelessWidget {
                     children: [
                       // Botón para alternar Modo Claro / Oscuro
                       InkWell(
-                        onTap: () => TemaServicio.instancia.alternarTema(context),
+                        onTap: () =>
+                            TemaServicio.instancia.alternarTema(context),
                         borderRadius: BorderRadius.circular(14),
                         child: Container(
                           padding: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
                             color: ColoresApp.tarjeta(context),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: ColoresApp.borde(context)),
+                            border: Border.all(
+                              color: ColoresApp.borde(context),
+                            ),
                           ),
                           child: Icon(
                             ColoresApp.esOscuro(context)
@@ -188,15 +187,15 @@ class InicioScreen extends StatelessWidget {
                             alpha: ColoresApp.esOscuro(context) ? 0.18 : 0.08,
                           )
                         : (ColoresApp.esOscuro(context)
-                            ? Colors.red.shade900.withValues(alpha: 0.3)
-                            : Colors.red.shade50),
+                              ? Colors.red.shade900.withValues(alpha: 0.3)
+                              : Colors.red.shade50),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: dineroDisponible >= 0
                           ? ColoresApp.primarioVerde.withValues(alpha: 0.3)
                           : (ColoresApp.esOscuro(context)
-                              ? Colors.red.shade700
-                              : Colors.red.shade300),
+                                ? Colors.red.shade700
+                                : Colors.red.shade300),
                     ),
                   ),
                   child: Row(
@@ -246,9 +245,9 @@ class InicioScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Tarjeta principal de balance reactivo
+              // Tarjeta principal de balance reactivo con el disponible real
               BalanceCard(
-                saldoTotal: _saldoTotal,
+                saldoTotal: dineroDisponible,
                 ingresosMes: _totalIngresos,
                 gastosMes: _totalGastos,
               ),

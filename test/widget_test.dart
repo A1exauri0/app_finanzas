@@ -167,4 +167,71 @@ void main() {
     expect(find.text('Comida'), findsOneWidget);
     expect(find.text('Transporte'), findsOneWidget);
   });
+
+  testWidgets('Verifica que abonar y retirar en Metas impacte el dinero disponible', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(const AppFinanzas());
+    await tester.pumpAndSettle();
+
+    // 1. Ingresamos saldo inicial (\$1000)
+    final botonAgregar = find.byType(FloatingActionButton);
+    await tester.tap(botonAgregar);
+    await tester.pumpAndSettle();
+
+    // Cambiar a ingreso
+    await tester.tap(find.text('Ingreso').last);
+    await tester.pumpAndSettle();
+
+    // Ingresar monto 1000
+    final campos = find.byType(TextFormField);
+    await tester.enterText(campos.first, '1000');
+    await tester.enterText(campos.at(1), 'Sueldo');
+    await tester.tap(find.text('Guardar Movimiento'));
+    await tester.pumpAndSettle();
+
+    // Verificamos que el balance muestre \$1000.00
+    expect(find.text('\$1000.00'), findsWidgets);
+
+    // 2. Navegamos a Metas y creamos una nueva meta con \$200 ahorrados
+    await tester.tap(find.text('Metas'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Nueva Meta'));
+    await tester.pumpAndSettle();
+
+    final camposMeta = find.byType(TextFormField);
+    await tester.enterText(camposMeta.first, 'Viaje');
+    await tester.enterText(camposMeta.at(1), '500'); // objetivo
+    await tester.enterText(camposMeta.at(2), '200'); // ahorrado inicial
+    await tester.tap(find.text('Crear Meta de Compra'));
+    await tester.pumpAndSettle();
+
+    // 3. Regresamos a Inicio y verificamos que el disponible ahora sea \$800.00
+    await tester.tap(find.text('Inicio'));
+    await tester.pumpAndSettle();
+    expect(find.text('\$800.00'), findsWidgets);
+
+    // 4. Volvemos a Metas y retiramos \$100 de la meta
+    await tester.tap(find.text('Metas'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Retirar'));
+    await tester.pumpAndSettle();
+
+    final campoRetiro = find.byType(TextField);
+    await tester.enterText(campoRetiro.last, '100');
+    await tester.tap(find.text('Confirmar Retiro'));
+    await tester.pumpAndSettle();
+
+    // 5. Regresamos a Inicio y verificamos que el disponible subió a \$900.00
+    await tester.tap(find.text('Inicio'));
+    await tester.pumpAndSettle();
+    expect(find.text('\$900.00'), findsWidgets);
+
+    // Drenamos los temporizadores internos de sqflite
+    await tester.pump(const Duration(seconds: 12));
+  });
 }

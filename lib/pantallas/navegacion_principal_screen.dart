@@ -27,7 +27,6 @@ import '../componentes/modales/nuevo_movimiento_modal.dart';
 import '../componentes/modales/nueva_meta_modal.dart';
 import '../componentes/menu/menu_lateral_drawer.dart';
 
-
 // ==========================================
 // IMPORTACIONES DE PANTALLAS
 // ==========================================
@@ -44,7 +43,8 @@ class NavegacionPrincipalScreen extends StatefulWidget {
   const NavegacionPrincipalScreen({super.key});
 
   @override
-  State<NavegacionPrincipalScreen> createState() => _NavegacionPrincipalScreenState();
+  State<NavegacionPrincipalScreen> createState() =>
+      _NavegacionPrincipalScreenState();
 }
 
 class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
@@ -68,7 +68,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Carga asíncrona de datos desde la base de datos local SQLite
   Future<void> _cargarDatosDesdeBaseDatos() async {
     try {
-      final movimientos = await BaseDatosServicio.instancia.obtenerMovimientos();
+      final movimientos = await BaseDatosServicio.instancia
+          .obtenerMovimientos();
       final deudas = await BaseDatosServicio.instancia.obtenerDeudas();
       final metas = await BaseDatosServicio.instancia.obtenerMetas();
 
@@ -94,9 +95,25 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         .where((m) => m.tipo == TipoMovimiento.gasto && !m.pagadoConTarjeta)
         .fold(0.0, (acum, m) => acum + m.monto);
 
-    final double totalEnMetas = _listaMetas.fold(0.0, (acum, meta) => acum + meta.montoAhorrado);
+    final double totalEnMetas = _listaMetas.fold(
+      0.0,
+      (acum, meta) => acum + meta.montoAhorrado,
+    );
+    final double ahorroMovimientos = _listaMovimientos
+        .where((m) => m.categoria == 'Ahorro / Metas')
+        .fold(0.0, (acum, m) => acum + m.monto);
+    final double retiroMovimientos = _listaMovimientos
+        .where(
+          (m) =>
+              m.categoria == 'Retiro de Ahorro / Metas' ||
+              m.categoria == 'Retiro de Metas',
+        )
+        .fold(0.0, (acum, m) => acum + m.monto);
+    final double netoMovimientosMetas = ahorroMovimientos - retiroMovimientos;
+    final double metasSinMovimiento = (totalEnMetas - netoMovimientosMetas)
+        .clamp(0.0, double.infinity);
 
-    return totalIngresos - gastosEfectivo - totalEnMetas;
+    return totalIngresos - gastosEfectivo - metasSinMovimiento;
   }
 
   // Registrar un movimiento e impactar deudas o tarjetas de crédito con historial
@@ -105,7 +122,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       _listaMovimientos.insert(0, nuevoMovimiento);
 
       // CASO 1: Gasto pagado con Tarjeta de Crédito -> Registra cargo en la tarjeta
-      if (nuevoMovimiento.pagadoConTarjeta && nuevoMovimiento.idTarjetaUtilizada != null) {
+      if (nuevoMovimiento.pagadoConTarjeta &&
+          nuevoMovimiento.idTarjetaUtilizada != null) {
         final tarjetaIndex = _listaDeudas.indexWhere(
           (d) => d.id == nuevoMovimiento.idTarjetaUtilizada,
         );
@@ -142,11 +160,14 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
     String mensaje;
     if (nuevoMovimiento.pagadoConTarjeta) {
-      mensaje = 'Gasto de \$${nuevoMovimiento.monto.toStringAsFixed(2)} cargado a ${nuevoMovimiento.nombreTarjetaUtilizada}';
+      mensaje =
+          'Gasto de \$${nuevoMovimiento.monto.toStringAsFixed(2)} cargado a ${nuevoMovimiento.nombreTarjetaUtilizada}';
     } else if (nuevoMovimiento.nombreDeudorAsociado != null) {
-      mensaje = 'Operación de \$${nuevoMovimiento.monto.toStringAsFixed(2)} aplicada a ${nuevoMovimiento.nombreDeudorAsociado}';
+      mensaje =
+          'Operación de \$${nuevoMovimiento.monto.toStringAsFixed(2)} aplicada a ${nuevoMovimiento.nombreDeudorAsociado}';
     } else {
-      mensaje = '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente';
+      mensaje =
+          '${nuevoMovimiento.tipo == TipoMovimiento.ingreso ? "Ingreso" : "Gasto"} registrado correctamente';
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -155,8 +176,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         backgroundColor: nuevoMovimiento.pagadoConTarjeta
             ? Colors.purple.shade700
             : (nuevoMovimiento.tipo == TipoMovimiento.ingreso
-                ? ColoresApp.ingresoVerde
-                : ColoresApp.gastoRojo),
+                  ? ColoresApp.ingresoVerde
+                  : ColoresApp.gastoRojo),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -165,7 +186,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Actualizar un movimiento editado
   void _actualizarMovimiento(MovimientoModelo movimientoActualizado) {
     setState(() {
-      final index = _listaMovimientos.indexWhere((m) => m.id == movimientoActualizado.id);
+      final index = _listaMovimientos.indexWhere(
+        (m) => m.id == movimientoActualizado.id,
+      );
       if (index != -1) {
         _listaMovimientos[index] = movimientoActualizado;
       }
@@ -175,7 +198,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Movimiento "${movimientoActualizado.titulo}" actualizado'),
+        content: Text(
+          'Movimiento "${movimientoActualizado.titulo}" actualizado',
+        ),
         backgroundColor: ColoresApp.primarioVerde,
       ),
     );
@@ -189,24 +214,35 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         final movEliminado = _listaMovimientos[index];
 
         // Revertir cargo de tarjeta si correspondía
-        if (movEliminado.pagadoConTarjeta && movEliminado.idTarjetaUtilizada != null) {
-          final tarjetaIndex = _listaDeudas.indexWhere((d) => d.id == movEliminado.idTarjetaUtilizada);
+        if (movEliminado.pagadoConTarjeta &&
+            movEliminado.idTarjetaUtilizada != null) {
+          final tarjetaIndex = _listaDeudas.indexWhere(
+            (d) => d.id == movEliminado.idTarjetaUtilizada,
+          );
           if (tarjetaIndex != -1) {
             final t = _listaDeudas[tarjetaIndex];
             t.montoPendiente -= movEliminado.monto;
             if (t.montoPendiente < 0) t.montoPendiente = 0;
-            t.historialPartidas.removeWhere((p) => p.concepto == movEliminado.titulo && p.monto == movEliminado.monto);
+            t.historialPartidas.removeWhere(
+              (p) =>
+                  p.concepto == movEliminado.titulo &&
+                  p.monto == movEliminado.monto,
+            );
             BaseDatosServicio.instancia.actualizarDeuda(t);
           }
         }
 
         // Revertir abono a deuda
         if (movEliminado.idDeudaAsociada != null) {
-          final deudaIndex = _listaDeudas.indexWhere((d) => d.id == movEliminado.idDeudaAsociada);
+          final deudaIndex = _listaDeudas.indexWhere(
+            (d) => d.id == movEliminado.idDeudaAsociada,
+          );
           if (deudaIndex != -1) {
             final d = _listaDeudas[deudaIndex];
             d.montoPendiente += movEliminado.monto;
-            d.historialPartidas.removeWhere((p) => p.monto == movEliminado.monto && p.esAbono);
+            d.historialPartidas.removeWhere(
+              (p) => p.monto == movEliminado.monto && p.esAbono,
+            );
             BaseDatosServicio.instancia.actualizarDeuda(d);
           }
         }
@@ -229,6 +265,21 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   void _agregarMeta(MetaModelo nuevaMeta) {
     setState(() {
       _listaMetas.add(nuevaMeta);
+
+      // Si se crea con ahorro inicial, se aparta del disponible
+      if (nuevaMeta.montoAhorrado > 0) {
+        final transaccion = MovimientoModelo(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          titulo: 'Ahorro inicial para ${nuevaMeta.titulo}',
+          monto: nuevaMeta.montoAhorrado,
+          fecha: DateTime.now(),
+          tipo: TipoMovimiento.gasto,
+          icono: nuevaMeta.icono,
+          categoria: 'Ahorro / Metas',
+        );
+        _listaMovimientos.insert(0, transaccion);
+        BaseDatosServicio.instancia.insertarMovimiento(transaccion);
+      }
     });
 
     BaseDatosServicio.instancia.insertarMeta(nuevaMeta);
@@ -246,8 +297,47 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     setState(() {
       final index = _listaMetas.indexWhere((m) => m.id == idMeta);
       if (index != -1) {
-        _listaMetas[index].abonar(montoAbono);
-        BaseDatosServicio.instancia.actualizarMeta(_listaMetas[index]);
+        final meta = _listaMetas[index];
+        meta.abonar(montoAbono);
+        BaseDatosServicio.instancia.actualizarMeta(meta);
+
+        // Movimiento de salida de dinero disponible hacia la meta
+        final transaccion = MovimientoModelo(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          titulo: 'Ahorro para ${meta.titulo}',
+          monto: montoAbono,
+          fecha: DateTime.now(),
+          tipo: TipoMovimiento.gasto,
+          icono: meta.icono,
+          categoria: 'Ahorro / Metas',
+        );
+        _listaMovimientos.insert(0, transaccion);
+        BaseDatosServicio.instancia.insertarMovimiento(transaccion);
+      }
+    });
+  }
+
+  // Retirar ahorro de una meta para devolverlo al dinero disponible
+  void _retirarDeMeta(String idMeta, double montoRetiro) {
+    setState(() {
+      final index = _listaMetas.indexWhere((m) => m.id == idMeta);
+      if (index != -1) {
+        final meta = _listaMetas[index];
+        meta.retirar(montoRetiro);
+        BaseDatosServicio.instancia.actualizarMeta(meta);
+
+        // Movimiento de entrada de dinero desde la meta hacia el disponible
+        final transaccion = MovimientoModelo(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          titulo: 'Retiro de ahorro: ${meta.titulo}',
+          monto: montoRetiro,
+          fecha: DateTime.now(),
+          tipo: TipoMovimiento.ingreso,
+          icono: Icons.savings_outlined,
+          categoria: 'Retiro de Ahorro / Metas',
+        );
+        _listaMovimientos.insert(0, transaccion);
+        BaseDatosServicio.instancia.insertarMovimiento(transaccion);
       }
     });
   }
@@ -264,10 +354,27 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     BaseDatosServicio.instancia.actualizarMeta(metaActualizada);
   }
 
-  // Eliminar una meta
+  // Eliminar una meta y devolver los fondos ahorrados al dinero disponible
   void _eliminarMeta(String idMeta) {
     setState(() {
-      _listaMetas.removeWhere((m) => m.id == idMeta);
+      final index = _listaMetas.indexWhere((m) => m.id == idMeta);
+      if (index != -1) {
+        final meta = _listaMetas[index];
+        if (meta.montoAhorrado > 0) {
+          final transaccionReintegro = MovimientoModelo(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            titulo: 'Reintegro por meta eliminada: ${meta.titulo}',
+            monto: meta.montoAhorrado,
+            fecha: DateTime.now(),
+            tipo: TipoMovimiento.ingreso,
+            icono: Icons.savings_outlined,
+            categoria: 'Retiro de Ahorro / Metas',
+          );
+          _listaMovimientos.insert(0, transaccionReintegro);
+          BaseDatosServicio.instancia.insertarMovimiento(transaccionReintegro);
+        }
+        _listaMetas.removeAt(index);
+      }
     });
 
     BaseDatosServicio.instancia.eliminarMeta(idMeta);
@@ -277,6 +384,24 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   void _agregarDeuda(DeudaModelo nuevaDeuda) {
     setState(() {
       _listaDeudas.add(nuevaDeuda);
+
+      // Si presté dinero a alguien (Me Deben), sale de mi efectivo disponible
+      if (nuevaDeuda.tipoDeuda == TipoDeuda.meDeben &&
+          nuevaDeuda.montoPendiente > 0) {
+        final transaccion = MovimientoModelo(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          titulo: 'Préstamo a ${nuevaDeuda.tituloOEntidad}',
+          monto: nuevaDeuda.montoPendiente,
+          fecha: DateTime.now(),
+          tipo: TipoMovimiento.gasto,
+          icono: Icons.handshake_rounded,
+          categoria: 'Préstamo Otorgado',
+          idDeudaAsociada: nuevaDeuda.id,
+          nombreDeudorAsociado: nuevaDeuda.tituloOEntidad,
+        );
+        _listaMovimientos.insert(0, transaccion);
+        BaseDatosServicio.instancia.insertarMovimiento(transaccion);
+      }
     });
 
     BaseDatosServicio.instancia.insertarDeuda(nuevaDeuda);
@@ -292,7 +417,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Actualizar tarjeta con todos sus parámetros editados
   void _actualizarTarjeta(DeudaModelo tarjetaActualizada) {
     setState(() {
-      final index = _listaDeudas.indexWhere((d) => d.id == tarjetaActualizada.id);
+      final index = _listaDeudas.indexWhere(
+        (d) => d.id == tarjetaActualizada.id,
+      );
       if (index != -1) {
         _listaDeudas[index] = tarjetaActualizada;
       }
@@ -302,7 +429,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Parámetros de ${tarjetaActualizada.tituloOEntidad} actualizados'),
+        content: Text(
+          'Parámetros de ${tarjetaActualizada.tituloOEntidad} actualizados',
+        ),
         backgroundColor: ColoresApp.primarioVerde,
       ),
     );
@@ -321,7 +450,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Registro de "${deudaActualizada.tituloOEntidad}" actualizado'),
+        content: Text(
+          'Registro de "${deudaActualizada.tituloOEntidad}" actualizado',
+        ),
         backgroundColor: ColoresApp.primarioVerde,
       ),
     );
@@ -337,13 +468,39 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   }
 
   // Acumular un nuevo préstamo a una persona existente
-  void _acumularPrestamo(String idDeuda, String concepto, double monto, DateTime fecha) {
+  void _acumularPrestamo(
+    String idDeuda,
+    String concepto,
+    double monto,
+    DateTime fecha,
+  ) {
     setState(() {
       final index = _listaDeudas.indexWhere((d) => d.id == idDeuda);
       if (index != -1) {
         final persona = _listaDeudas[index];
-        persona.acumularNuevoPrestamo(concepto: concepto, monto: monto, fecha: fecha);
+        persona.acumularNuevoPrestamo(
+          concepto: concepto,
+          monto: monto,
+          fecha: fecha,
+        );
         BaseDatosServicio.instancia.actualizarDeuda(persona);
+
+        // Si le presté más dinero, se descuenta de mi dinero disponible
+        if (persona.tipoDeuda == TipoDeuda.meDeben) {
+          final transaccion = MovimientoModelo(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            titulo: 'Préstamo adicional a ${persona.tituloOEntidad}',
+            monto: monto,
+            fecha: fecha,
+            tipo: TipoMovimiento.gasto,
+            icono: Icons.handshake_rounded,
+            categoria: 'Préstamo Otorgado',
+            idDeudaAsociada: persona.id,
+            nombreDeudorAsociado: persona.tituloOEntidad,
+          );
+          _listaMovimientos.insert(0, transaccion);
+          BaseDatosServicio.instancia.insertarMovimiento(transaccion);
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -380,13 +537,17 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         titulo: esTarjeta
             ? 'Pago a tarjeta ${deuda.tituloOEntidad}'
-            : (esMeDeben ? 'Abono de ${deuda.tituloOEntidad}' : 'Pago a ${deuda.tituloOEntidad}'),
+            : (esMeDeben
+                  ? 'Abono de ${deuda.tituloOEntidad}'
+                  : 'Pago a ${deuda.tituloOEntidad}'),
         monto: montoAbono,
         fecha: DateTime.now(),
         tipo: esMeDeben ? TipoMovimiento.ingreso : TipoMovimiento.gasto,
         icono: esTarjeta
             ? Icons.credit_card_rounded
-            : (esMeDeben ? Icons.handshake_rounded : Icons.money_off_csred_rounded),
+            : (esMeDeben
+                  ? Icons.handshake_rounded
+                  : Icons.money_off_csred_rounded),
         categoria: esTarjeta
             ? 'Pago de Deuda / Tarjeta'
             : (esMeDeben ? 'Cobro de Deuda' : 'Pago de Deuda / Tarjeta'),
@@ -439,9 +600,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => NuevaMetaModal(
-        alGuardarMeta: _agregarMeta,
-      ),
+      builder: (ctx) => NuevaMetaModal(alGuardarMeta: _agregarMeta),
     );
   }
 
@@ -470,6 +629,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alActualizarMeta: _actualizarMeta,
         alEliminarMeta: _eliminarMeta,
         alAbonarMeta: _abonarAMeta,
+        alRetirarMeta: _retirarDeMeta,
       ),
       DeudasScreen(
         listaDeudas: _listaDeudas,
@@ -489,7 +649,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       drawer: MenuLateralDrawer(
         dineroDisponible: _dineroDisponibleReal,
         indicePestanaActual: _indicePestanaActual,
-        alSeleccionarPestana: (indice) => setState(() => _indicePestanaActual = indice),
+        alSeleccionarPestana: (indice) =>
+            setState(() => _indicePestanaActual = indice),
         alAbrirPanelFinanzas: _abrirPanelFinanzas,
         alRegistrarMovimiento: _abrirModalRegistroCentral,
       ),
@@ -576,8 +737,9 @@ class _BotonNavegacionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color colorActual =
-        estaSeleccionado ? ColoresApp.primarioVerde : ColoresApp.textoSecundario;
+    final Color colorActual = estaSeleccionado
+        ? ColoresApp.primarioVerde
+        : ColoresApp.textoSecundario;
 
     return InkWell(
       onTap: alPresionar,
@@ -593,7 +755,9 @@ class _BotonNavegacionItem extends StatelessWidget {
               etiqueta,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: estaSeleccionado ? FontWeight.bold : FontWeight.w500,
+                fontWeight: estaSeleccionado
+                    ? FontWeight.bold
+                    : FontWeight.w500,
                 color: colorActual,
               ),
             ),

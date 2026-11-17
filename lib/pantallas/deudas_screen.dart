@@ -486,11 +486,14 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _mostrarModalSegunPestana,
-        backgroundColor: colorBoton,
-        icon: Icon(iconoBoton, color: Colors.white),
-        label: Text(textoBoton, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 64),
+        child: FloatingActionButton.extended(
+          onPressed: _mostrarModalSegunPestana,
+          backgroundColor: colorBoton,
+          icon: Icon(iconoBoton, color: Colors.white),
+          label: Text(textoBoton, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
       ),
     );
   }

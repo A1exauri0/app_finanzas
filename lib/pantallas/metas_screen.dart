@@ -29,6 +29,7 @@ class MetasScreen extends StatefulWidget {
   final Function(MetaModelo) alActualizarMeta;
   final Function(String idMeta) alEliminarMeta;
   final Function(String idMeta, double montoAbono) alAbonarMeta;
+  final Function(String idMeta, double montoRetiro) alRetirarMeta;
 
   const MetasScreen({
     super.key,
@@ -37,6 +38,7 @@ class MetasScreen extends StatefulWidget {
     required this.alActualizarMeta,
     required this.alEliminarMeta,
     required this.alAbonarMeta,
+    required this.alRetirarMeta,
   });
 
   @override
@@ -189,6 +191,99 @@ class _MetasScreenState extends State<MetasScreen> {
     );
   }
 
+  // Diálogo para retirar ahorro de una meta y devolverlo al disponible
+  void _mostrarDialogoRetirar(MetaModelo meta) {
+    final TextEditingController retiroControlador = TextEditingController();
+    String? errorTexto;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateModal) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                CircleAvatar(
+                  radius: 14,
+                  backgroundColor: meta.color.withValues(alpha: 0.15),
+                  child: Icon(meta.icono, size: 16, color: meta.color),
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: Text('Retirar de "${meta.titulo}"')),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Ahorrado actualmente: \$${meta.montoAhorrado.toStringAsFixed(2)}'),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: retiroControlador,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'Monto a retirar (\$)',
+                    prefixIcon: const Icon(Icons.attach_money_rounded),
+                    border: const OutlineInputBorder(),
+                    errorText: errorTexto,
+                  ),
+                  onChanged: (val) {
+                    final double? monto = double.tryParse(val.replaceAll(',', ''));
+                    if (monto != null && monto > meta.montoAhorrado) {
+                      setStateModal(() {
+                        errorTexto = 'No puedes retirar más de \$${meta.montoAhorrado.toStringAsFixed(2)}';
+                      });
+                    } else if (errorTexto != null) {
+                      setStateModal(() {
+                        errorTexto = null;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: ColoresApp.gastoRojo),
+                onPressed: () {
+                  final double? monto = double.tryParse(retiroControlador.text.replaceAll(',', ''));
+                  if (monto == null || monto <= 0) {
+                    setStateModal(() {
+                      errorTexto = 'Ingresa un monto válido';
+                    });
+                    return;
+                  }
+                  if (monto > meta.montoAhorrado) {
+                    setStateModal(() {
+                      errorTexto = 'No puedes retirar más de lo ahorrado';
+                    });
+                    return;
+                  }
+                  widget.alRetirarMeta(meta.id, monto);
+                  Navigator.of(ctx).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Se retiraron \$${monto.toStringAsFixed(2)} de "${meta.titulo}" y volvieron a tu dinero disponible',
+                      ),
+                      backgroundColor: ColoresApp.primarioVerde,
+                    ),
+                  );
+                },
+                child: const Text('Confirmar Retiro'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final int metasCumplidas = widget.listaMetas.where((m) => m.estaCumplida).length;
@@ -281,6 +376,7 @@ class _MetasScreenState extends State<MetasScreen> {
                   return MetaProgresoCard(
                     meta: meta,
                     alPulsarAbonar: _mostrarDialogoAbonar,
+                    alPulsarRetirar: _mostrarDialogoRetirar,
                     alPulsarEditar: _mostrarModalEditarMeta,
                     alPulsarEliminar: _confirmarEliminarMeta,
                   );
@@ -289,11 +385,14 @@ class _MetasScreenState extends State<MetasScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _mostrarModalNuevaMeta,
-        backgroundColor: const Color(0xFFE65100),
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text('Nueva Meta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 64),
+        child: FloatingActionButton.extended(
+          onPressed: _mostrarModalNuevaMeta,
+          backgroundColor: const Color(0xFFE65100),
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: const Text('Nueva Meta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
       ),
     );
   }

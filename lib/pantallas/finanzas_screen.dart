@@ -13,7 +13,6 @@ import '../constantes/colores_app.dart';
 // ==========================================
 import '../servicios/tema_servicio.dart';
 
-
 // ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
@@ -26,8 +25,6 @@ import '../modelos/meta_modelo.dart';
 // ==========================================
 import '../componentes/graficas/grafica_dona_categorias.dart';
 import '../componentes/graficas/grafica_barras_balance.dart';
-
-
 
 // ==========================================
 // PANTALLA: PANEL DE FINANZAS Y GRAFICAS
@@ -64,10 +61,30 @@ class FinanzasScreen extends StatelessWidget {
       .fold(0.0, (acum, m) => acum + m.monto);
 
   // Ahorro apartado en metas
-  double get _totalAhorradoMetas => listaMetas.fold(0.0, (acum, m) => acum + m.montoAhorrado);
+  double get _totalAhorradoMetas =>
+      listaMetas.fold(0.0, (acum, m) => acum + m.montoAhorrado);
 
-  // Dinero Líquido Disponible Real
-  double get _dineroDisponibleReal => _totalIngresos - _gastosEfectivoDebito - _totalAhorradoMetas;
+  // Dinero Líquido Disponible Real coherente con apartados y movimientos
+  double get _dineroDisponibleReal {
+    final double ahorroMovimientos = listaMovimientos
+        .where((m) => m.categoria == 'Ahorro / Metas')
+        .fold(0.0, (acum, m) => acum + m.monto);
+    final double retiroMovimientos = listaMovimientos
+        .where(
+          (m) =>
+              m.categoria == 'Retiro de Ahorro / Metas' ||
+              m.categoria == 'Retiro de Metas',
+        )
+        .fold(0.0, (acum, m) => acum + m.monto);
+    final double netoMovimientosMetas = ahorroMovimientos - retiroMovimientos;
+    final double metasSinMovimiento =
+        (_totalAhorradoMetas - netoMovimientosMetas).clamp(
+          0.0,
+          double.infinity,
+        );
+
+    return _totalIngresos - _gastosEfectivoDebito - metasSinMovimiento;
+  }
 
   // Crédito total disponible en tarjetas
   double get _creditoDisponibleTarjetas => listaDeudas
@@ -84,7 +101,9 @@ class FinanzasScreen extends StatelessWidget {
     final Map<String, double> agrupados = {};
     final Map<String, IconData> iconos = {};
 
-    final gastos = listaMovimientos.where((m) => m.tipo == TipoMovimiento.gasto);
+    final gastos = listaMovimientos.where(
+      (m) => m.tipo == TipoMovimiento.gasto,
+    );
 
     for (final g in gastos) {
       agrupados[g.categoria] = (agrupados[g.categoria] ?? 0.0) + g.monto;
@@ -119,7 +138,8 @@ class FinanzasScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool saldoSaludable = _dineroDisponibleReal > 0;
     final double porcentajeComprometido = _totalIngresos > 0
-        ? ((_gastosEfectivoDebito + _totalAhorradoMetas) / _totalIngresos).clamp(0.0, 1.0)
+        ? ((_gastosEfectivoDebito + _totalAhorradoMetas) / _totalIngresos)
+              .clamp(0.0, 1.0)
         : 1.0;
 
     return Scaffold(
@@ -171,8 +191,9 @@ class FinanzasScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: (saldoSaludable ? ColoresApp.primarioVerde : Colors.red)
-                        .withValues(alpha: 0.28),
+                    color:
+                        (saldoSaludable ? ColoresApp.primarioVerde : Colors.red)
+                            .withValues(alpha: 0.28),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -199,7 +220,10 @@ class FinanzasScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20),
@@ -208,7 +232,9 @@ class FinanzasScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              saldoSaludable ? Icons.check_circle_rounded : Icons.warning_rounded,
+                              saldoSaludable
+                                  ? Icons.check_circle_rounded
+                                  : Icons.warning_rounded,
                               color: Colors.white,
                               size: 14,
                             ),
@@ -292,7 +318,10 @@ class FinanzasScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.speed_rounded, color: ColoresApp.primarioVerde),
+                      const Icon(
+                        Icons.speed_rounded,
+                        color: ColoresApp.primarioVerde,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -330,7 +359,9 @@ class FinanzasScreen extends StatelessWidget {
                           : Colors.grey.shade200,
                       color: porcentajeComprometido > 0.85
                           ? ColoresApp.gastoRojo
-                          : (porcentajeComprometido > 0.65 ? Colors.amber.shade700 : ColoresApp.primarioVerde),
+                          : (porcentajeComprometido > 0.65
+                                ? Colors.amber.shade700
+                                : ColoresApp.primarioVerde),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -338,9 +369,12 @@ class FinanzasScreen extends StatelessWidget {
                     porcentajeComprometido <= 0.65
                         ? '🟢 Excelente: Tienes más del 35% de tus ingresos disponibles para imprevistos o ahorro.'
                         : (porcentajeComprometido <= 0.85
-                            ? '🟡 Precaución: Has comprometido la mayor parte de tu liquidez este mes.'
-                            : '🔴 Límite crítico: Te queda muy poco margen antes de sobregirarte.'),
-                    style: TextStyle(fontSize: 12, color: ColoresApp.subtexto(context)),
+                              ? '🟡 Precaución: Has comprometido la mayor parte de tu liquidez este mes.'
+                              : '🔴 Límite crítico: Te queda muy poco margen antes de sobregirarte.'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: ColoresApp.subtexto(context),
+                    ),
                   ),
                 ],
               ),
@@ -564,10 +598,7 @@ class _ElementoDesgloseBlanco extends StatelessWidget {
   final String etiqueta;
   final String valor;
 
-  const _ElementoDesgloseBlanco({
-    required this.etiqueta,
-    required this.valor,
-  });
+  const _ElementoDesgloseBlanco({required this.etiqueta, required this.valor});
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +636,11 @@ class _ItemConsejo extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.check_circle_outline_rounded, size: 16, color: ColoresApp.primarioVerde),
+        const Icon(
+          Icons.check_circle_outline_rounded,
+          size: 16,
+          color: ColoresApp.primarioVerde,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

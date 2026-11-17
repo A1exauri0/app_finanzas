@@ -19,6 +19,7 @@ import '../../modelos/meta_modelo.dart';
 class MetaProgresoCard extends StatelessWidget {
   final MetaModelo meta;
   final Function(MetaModelo) alPulsarAbonar;
+  final Function(MetaModelo) alPulsarRetirar;
   final Function(MetaModelo) alPulsarEditar;
   final Function(MetaModelo) alPulsarEliminar;
 
@@ -26,6 +27,7 @@ class MetaProgresoCard extends StatelessWidget {
     super.key,
     required this.meta,
     required this.alPulsarAbonar,
+    required this.alPulsarRetirar,
     required this.alPulsarEditar,
     required this.alPulsarEliminar,
   });
@@ -141,6 +143,8 @@ class MetaProgresoCard extends StatelessWidget {
                 onSelected: (valor) {
                   if (valor == 'editar') {
                     alPulsarEditar(meta);
+                  } else if (valor == 'retirar') {
+                    alPulsarRetirar(meta);
                   } else if (valor == 'eliminar') {
                     alPulsarEliminar(meta);
                   }
@@ -156,6 +160,17 @@ class MetaProgresoCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (meta.montoAhorrado > 0)
+                    PopupMenuItem<String>(
+                      value: 'retirar',
+                      child: Row(
+                        children: [
+                          Icon(Icons.outbox_rounded, color: Colors.amber.shade700, size: 20),
+                          const SizedBox(width: 10),
+                          const Text('Retirar Ahorro'),
+                        ],
+                      ),
+                    ),
                   const PopupMenuItem<String>(
                     value: 'eliminar',
                     child: Row(
@@ -273,22 +288,47 @@ class MetaProgresoCard extends StatelessWidget {
           ],
           const SizedBox(height: 14),
 
-          // Botón para abonar
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => alPulsarAbonar(meta),
-              icon: Icon(cumplida ? Icons.add_circle_outline_rounded : Icons.savings_rounded, size: 18),
-              label: Text(
-                cumplida ? 'Añadir más ahorro' : 'Abonar a esta Meta',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+          // Botones de acción: Abonar y Retirar de forma dinámica
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => alPulsarAbonar(meta),
+                  icon: Icon(
+                    cumplida ? Icons.add_circle_outline_rounded : Icons.savings_rounded,
+                    size: 18,
+                  ),
+                  label: Text(
+                    cumplida ? 'Añadir más' : 'Abonar',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cumplida ? Colors.green : meta.color,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
-              style: FilledButton.styleFrom(
-                backgroundColor: cumplida ? Colors.green : meta.color,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
+              if (meta.montoAhorrado > 0) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => alPulsarRetirar(meta),
+                    icon: const Icon(Icons.outbox_rounded, size: 18),
+                    label: const Text(
+                      'Retirar',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: ColoresApp.texto(context),
+                      side: BorderSide(color: ColoresApp.borde(context)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),
