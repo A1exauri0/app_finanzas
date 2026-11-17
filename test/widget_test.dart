@@ -257,10 +257,17 @@ void main() {
     await tester.tap(find.text('Guardar Movimiento'));
     await tester.pumpAndSettle();
 
-    // Verificamos presencia de Gastos Fijos del Mes en Inicio
+    // 2. Navegamos a la pestaña Deudas y seleccionamos la pestaña Gastos Fijos
+    await tester.tap(find.text('Deudas'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Gastos Fijos'));
+    await tester.pumpAndSettle();
+
+    // Verificamos presencia de Gastos Fijos del Mes
     expect(find.text('Gastos Fijos del Mes'), findsOneWidget);
 
-    // 2. Tocamos botón "Agregar" en Gastos Fijos
+    // Tocamos botón "Agregar" en Gastos Fijos
     await tester.tap(find.text('Agregar'));
     await tester.pumpAndSettle();
 
@@ -284,7 +291,9 @@ void main() {
     // Verificamos que ahora diga 'Listo'
     expect(find.text('Listo'), findsOneWidget);
 
-    // Verificamos que el dinero disponible haya descontado \$129 (1000 - 129 = 871.00)
+    // 4. Volvemos a Inicio y verificamos que el dinero disponible haya descontado \$129 (1000 - 129 = 871.00)
+    await tester.tap(find.text('Inicio'));
+    await tester.pumpAndSettle();
     expect(find.text('\$871.00'), findsWidgets);
 
     // Drenamos los temporizadores internos de sqflite

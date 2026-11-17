@@ -12,10 +12,12 @@ import '../constantes/colores_app.dart';
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/deuda_modelo.dart';
+import '../modelos/gasto_fijo_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
+import '../componentes/cards/gastos_fijos_resumen_card.dart';
 import '../componentes/modales/nueva_deuda_modal.dart';
 import '../componentes/modales/editar_tarjeta_modal.dart';
 import '../componentes/modales/editar_deuda_persona_modal.dart';
@@ -26,6 +28,7 @@ import '../componentes/modales/editar_deuda_persona_modal.dart';
 // ==========================================
 class DeudasScreen extends StatefulWidget {
   final List<DeudaModelo> listaDeudas;
+  final List<GastoFijoModelo> listaGastosFijos;
   final Function(DeudaModelo) alAgregarDeuda;
   final Function(DeudaModelo) alActualizarTarjeta;
   final Function(DeudaModelo) alActualizarDeudaPersona;
@@ -33,10 +36,15 @@ class DeudasScreen extends StatefulWidget {
   final Function(String idDeuda, double montoAbono) alAbonarDeuda;
   final Function(String idTarjeta, int nuevoDiaCorte) alEditarDiaCorte;
   final Function(String idDeuda, String concepto, double monto, DateTime fecha) alAcumularPrestamo;
+  final VoidCallback alPulsarNuevoGastoFijo;
+  final Function(GastoFijoModelo) alMarcarGastoFijoPagado;
+  final Function(GastoFijoModelo) alEditarGastoFijo;
+  final Function(GastoFijoModelo) alEliminarGastoFijo;
 
   const DeudasScreen({
     super.key,
     required this.listaDeudas,
+    this.listaGastosFijos = const [],
     required this.alAgregarDeuda,
     required this.alActualizarTarjeta,
     required this.alActualizarDeudaPersona,
@@ -44,6 +52,10 @@ class DeudasScreen extends StatefulWidget {
     required this.alAbonarDeuda,
     required this.alEditarDiaCorte,
     required this.alAcumularPrestamo,
+    required this.alPulsarNuevoGastoFijo,
+    required this.alMarcarGastoFijoPagado,
+    required this.alEditarGastoFijo,
+    required this.alEliminarGastoFijo,
   });
 
   @override
@@ -56,7 +68,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabControlador = TabController(length: 3, vsync: this);
+    _tabControlador = TabController(length: 4, vsync: this);
     _tabControlador.addListener(() {
       if (!_tabControlador.indexIsChanging) {
         setState(() {});
@@ -72,6 +84,11 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
 
   // Abrir modal según la pestaña actual
   void _mostrarModalSegunPestana() {
+    if (_tabControlador.index == 3) {
+      widget.alPulsarNuevoGastoFijo();
+      return;
+    }
+
     TipoDeuda tipoInicial;
     if (_tabControlador.index == 0) {
       tipoInicial = TipoDeuda.tarjetaCredito;
@@ -427,17 +444,21 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
       textoBoton = 'Nuevo Préstamo (Me Deben)';
       iconoBoton = Icons.handshake_rounded;
       colorBoton = ColoresApp.primarioVerde;
-    } else {
+    } else if (_tabControlador.index == 2) {
       textoBoton = 'Nueva Deuda (Debo)';
       iconoBoton = Icons.money_off_csred_rounded;
       colorBoton = ColoresApp.gastoRojo;
+    } else {
+      textoBoton = 'Nuevo Gasto Fijo';
+      iconoBoton = Icons.add_rounded;
+      colorBoton = const Color(0xFF1976D2);
     }
 
     return Scaffold(
       backgroundColor: ColoresApp.fondo(context),
       appBar: AppBar(
         title: Text(
-          'Deudas',
+          'Deudas & Compromisos',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: ColoresApp.texto(context),
@@ -447,6 +468,8 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
         elevation: 0,
         bottom: TabBar(
           controller: _tabControlador,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           indicatorColor: ColoresApp.primarioVerde,
           labelColor: ColoresApp.primarioVerde,
           unselectedLabelColor: ColoresApp.subtexto(context),
@@ -454,6 +477,7 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
             Tab(icon: Icon(Icons.credit_card_rounded), text: 'Tarjetas'),
             Tab(icon: Icon(Icons.handshake_rounded), text: 'Me Deben'),
             Tab(icon: Icon(Icons.money_off_csred_rounded), text: 'Debo'),
+            Tab(icon: Icon(Icons.repeat_rounded), text: 'Gastos Fijos'),
           ],
         ),
       ),
@@ -483,6 +507,17 @@ class _DeudasScreenState extends State<DeudasScreen> with SingleTickerProviderSt
             alPulsarVerHistorial: _mostrarHistorialPersona,
             alPulsarEditar: _mostrarModalEditarPersona,
             alPulsarEliminar: _confirmarEliminar,
+          ),
+          // Vista 4: Suscripciones y Gastos Fijos
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 90),
+            child: GastosFijosResumenCard(
+              listaGastosFijos: widget.listaGastosFijos,
+              alPulsarNuevoGastoFijo: widget.alPulsarNuevoGastoFijo,
+              alMarcarPagado: widget.alMarcarGastoFijoPagado,
+              alEditarGastoFijo: widget.alEditarGastoFijo,
+              alEliminarGastoFijo: widget.alEliminarGastoFijo,
+            ),
           ),
         ],
       ),

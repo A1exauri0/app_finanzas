@@ -713,15 +713,10 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       InicioScreen(
         listaMovimientos: _listaMovimientos,
         listaDeudas: _listaDeudas,
-        listaGastosFijos: _listaGastosFijos,
         dineroDisponible: _dineroDisponibleReal,
         alRegistrarMovimiento: _agregarMovimiento,
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
         alAbrirPanelFinanzas: _abrirPanelFinanzas,
-        alPulsarNuevoGastoFijo: () => _mostrarModalNuevoGastoFijo(),
-        alMarcarGastoFijoPagado: _marcarGastoFijoPagado,
-        alEditarGastoFijo: (g) => _mostrarModalNuevoGastoFijo(g),
-        alEliminarGastoFijo: _eliminarGastoFijo,
       ),
       MovimientosScreen(
         listaMovimientos: _listaMovimientos,
@@ -740,6 +735,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       ),
       DeudasScreen(
         listaDeudas: _listaDeudas,
+        listaGastosFijos: _listaGastosFijos,
         alAgregarDeuda: _agregarDeuda,
         alActualizarTarjeta: _actualizarTarjeta,
         alActualizarDeudaPersona: _actualizarDeudaPersona,
@@ -747,6 +743,10 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alAbonarDeuda: _abonarADeuda,
         alEditarDiaCorte: _actualizarDiaCorteTarjeta,
         alAcumularPrestamo: _acumularPrestamo,
+        alPulsarNuevoGastoFijo: () => _mostrarModalNuevoGastoFijo(),
+        alMarcarGastoFijoPagado: _marcarGastoFijoPagado,
+        alEditarGastoFijo: (g) => _mostrarModalNuevoGastoFijo(g),
+        alEliminarGastoFijo: _eliminarGastoFijo,
       ),
     ];
 

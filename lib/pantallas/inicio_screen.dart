@@ -18,13 +18,11 @@ import '../servicios/tema_servicio.dart';
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
-import '../modelos/gasto_fijo_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/cards/balance_card.dart';
-import '../componentes/cards/gastos_fijos_resumen_card.dart';
 import '../componentes/cards/movimiento_item_tile.dart';
 import '../componentes/modales/nuevo_movimiento_modal.dart';
 
@@ -34,29 +32,19 @@ import '../componentes/modales/nuevo_movimiento_modal.dart';
 class InicioScreen extends StatelessWidget {
   final List<MovimientoModelo> listaMovimientos;
   final List<DeudaModelo> listaDeudas;
-  final List<GastoFijoModelo> listaGastosFijos;
   final double dineroDisponible;
   final Function(MovimientoModelo) alRegistrarMovimiento;
   final VoidCallback? alPulsarNuevaMeta;
   final VoidCallback? alAbrirPanelFinanzas;
-  final VoidCallback? alPulsarNuevoGastoFijo;
-  final Function(GastoFijoModelo)? alMarcarGastoFijoPagado;
-  final Function(GastoFijoModelo)? alEditarGastoFijo;
-  final Function(GastoFijoModelo)? alEliminarGastoFijo;
 
   const InicioScreen({
     super.key,
     required this.listaMovimientos,
     required this.listaDeudas,
-    this.listaGastosFijos = const [],
     this.dineroDisponible = 0.0,
     required this.alRegistrarMovimiento,
     this.alPulsarNuevaMeta,
     this.alAbrirPanelFinanzas,
-    this.alPulsarNuevoGastoFijo,
-    this.alMarcarGastoFijoPagado,
-    this.alEditarGastoFijo,
-    this.alEliminarGastoFijo,
   });
 
   // Métodos de cálculo dinámico para el balance
@@ -306,16 +294,6 @@ class InicioScreen extends StatelessWidget {
                     alPresionar: alPulsarNuevaMeta ?? () {},
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
-
-              // Tarjeta visual interactiva de Gastos Fijos y Suscripciones Recurrentes
-              GastosFijosResumenCard(
-                listaGastosFijos: listaGastosFijos,
-                alPulsarNuevoGastoFijo: alPulsarNuevoGastoFijo ?? () {},
-                alMarcarPagado: alMarcarGastoFijoPagado ?? (_) {},
-                alEditarGastoFijo: alEditarGastoFijo ?? (_) {},
-                alEliminarGastoFijo: alEliminarGastoFijo ?? (_) {},
               ),
               const SizedBox(height: 28),
 
