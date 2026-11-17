@@ -26,6 +26,7 @@ import '../servicios/base_datos_servicio.dart';
 // ==========================================
 import '../componentes/modales/nuevo_movimiento_modal.dart';
 import '../componentes/modales/nueva_meta_modal.dart';
+import '../componentes/modales/nueva_deuda_modal.dart';
 import '../componentes/modales/nuevo_gasto_fijo_modal.dart';
 import '../componentes/menu/menu_lateral_drawer.dart';
 
@@ -55,6 +56,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
   // Índice actual de la pantalla (0: Inicio, 1: Movimientos, 2: Metas, 3: Deudas)
   int _indicePestanaActual = 0;
+
+  // Sub-índice activo en la pantalla de Deudas (0: Tarjetas, 1: Me Deben, 2: Debo, 3: Gastos Fijos)
+  int _subIndicePestanaDeudas = 0;
 
   // Listas reactivas iniciadas limpias (se nutren de SQLite)
   List<MetaModelo> _listaMetas = [];
@@ -706,6 +710,136 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     _agregarMovimiento(movimientoPago);
   }
 
+  // ==========================================
+  // APERTURA DE MODAL DE DEUDA SEGUN TIPO
+  // ==========================================
+  void _abrirModalNuevaDeudaSegunTipo(TipoDeuda tipoInicial) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: ColoresApp.tarjeta(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => NuevaDeudaModal(
+        tipoInicial: tipoInicial,
+        listaDeudasExistentes: _listaDeudas,
+        alGuardarDeuda: _agregarDeuda,
+        alAcumularDeuda: _acumularPrestamo,
+      ),
+    );
+  }
+
+  // ==========================================
+  // CONFIGURACION DINAMICA DEL BOTON FLOTANTE
+  // ==========================================
+  // Color contextual según la pestaña o subpestaña actual
+  Color get _colorBotonFlotante {
+    switch (_indicePestanaActual) {
+      case 2: // Metas
+        return const Color(0xFFE65100);
+      case 3: // Deudas y Tarjetas
+        switch (_subIndicePestanaDeudas) {
+          case 0:
+            return Colors.purple.shade700; // Tarjetas
+          case 1:
+            return ColoresApp.primarioVerde; // Me Deben (Préstamos)
+          case 2:
+            return ColoresApp.gastoRojo; // Debo (Deudas)
+          case 3:
+            return const Color(0xFF1976D2); // Gastos Fijos
+          default:
+            return ColoresApp.primarioVerde;
+        }
+      case 0: // Inicio
+      case 1: // Movimientos
+      default:
+        return ColoresApp.primarioVerde;
+    }
+  }
+
+  // Ícono contextual según la pestaña o subpestaña actual
+  IconData get _iconoBotonFlotante {
+    switch (_indicePestanaActual) {
+      case 2: // Metas
+        return Icons.flag_rounded;
+      case 3: // Deudas y Tarjetas
+        switch (_subIndicePestanaDeudas) {
+          case 0:
+            return Icons.credit_card_rounded;
+          case 1:
+            return Icons.handshake_rounded;
+          case 2:
+            return Icons.money_off_csred_rounded;
+          case 3:
+            return Icons.repeat_rounded;
+          default:
+            return Icons.add_rounded;
+        }
+      case 0: // Inicio
+      case 1: // Movimientos
+      default:
+        return Icons.add_rounded;
+    }
+  }
+
+  // Tooltip descriptivo según el contexto
+  String get _tooltipBotonFlotante {
+    switch (_indicePestanaActual) {
+      case 2:
+        return 'Nueva Meta';
+      case 3:
+        switch (_subIndicePestanaDeudas) {
+          case 0:
+            return 'Nueva Tarjeta';
+          case 1:
+            return 'Nuevo Préstamo';
+          case 2:
+            return 'Nueva Deuda';
+          case 3:
+            return 'Nuevo Gasto Fijo';
+          default:
+            return 'Nuevo Registro';
+        }
+      case 0:
+      case 1:
+      default:
+        return 'Nuevo Movimiento';
+    }
+  }
+
+  // Acción disparada al presionar el botón flotante adaptativo
+  void _ejecutarAccionBotonFlotante() {
+    switch (_indicePestanaActual) {
+      case 2: // Metas
+        _abrirModalNuevaMeta();
+        break;
+      case 3: // Deudas y Tarjetas
+        switch (_subIndicePestanaDeudas) {
+          case 0:
+            _abrirModalNuevaDeudaSegunTipo(TipoDeuda.tarjetaCredito);
+            break;
+          case 1:
+            _abrirModalNuevaDeudaSegunTipo(TipoDeuda.meDeben);
+            break;
+          case 2:
+            _abrirModalNuevaDeudaSegunTipo(TipoDeuda.debo);
+            break;
+          case 3:
+            _mostrarModalNuevoGastoFijo();
+            break;
+          default:
+            _abrirModalRegistroCentral();
+        }
+        break;
+      case 0: // Inicio
+      case 1: // Movimientos
+      default:
+        _abrirModalRegistroCentral();
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Lista de pantallas con el estado compartido
@@ -747,6 +881,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alMarcarGastoFijoPagado: _marcarGastoFijoPagado,
         alEditarGastoFijo: (g) => _mostrarModalNuevoGastoFijo(g),
         alEliminarGastoFijo: _eliminarGastoFijo,
+        alCambiarSubPestana: (subIndice) =>
+            setState(() => _subIndicePestanaDeudas = subIndice),
       ),
     ];
 
@@ -763,11 +899,12 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       ),
       body: pantallas[_indicePestanaActual],
       floatingActionButton: FloatingActionButton(
-        onPressed: _abrirModalRegistroCentral,
-        backgroundColor: ColoresApp.primarioVerde,
+        onPressed: _ejecutarAccionBotonFlotante,
+        backgroundColor: _colorBotonFlotante,
+        tooltip: _tooltipBotonFlotante,
         elevation: 4,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add_rounded, size: 32, color: Colors.white),
+        child: Icon(_iconoBotonFlotante, size: 30, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(

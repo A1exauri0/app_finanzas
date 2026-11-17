@@ -18,7 +18,6 @@ import '../modelos/gasto_fijo_modelo.dart';
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/cards/gastos_fijos_resumen_card.dart';
-import '../componentes/modales/nueva_deuda_modal.dart';
 import '../componentes/modales/editar_tarjeta_modal.dart';
 import '../componentes/modales/editar_deuda_persona_modal.dart';
 
@@ -40,6 +39,7 @@ class DeudasScreen extends StatefulWidget {
   final Function(GastoFijoModelo) alMarcarGastoFijoPagado;
   final Function(GastoFijoModelo) alEditarGastoFijo;
   final Function(GastoFijoModelo) alEliminarGastoFijo;
+  final Function(int)? alCambiarSubPestana;
 
   const DeudasScreen({
     super.key,
@@ -56,6 +56,7 @@ class DeudasScreen extends StatefulWidget {
     required this.alMarcarGastoFijoPagado,
     required this.alEditarGastoFijo,
     required this.alEliminarGastoFijo,
+    this.alCambiarSubPestana,
   });
 
   @override
@@ -72,6 +73,7 @@ class _DeudasScreenState extends State<DeudasScreen>
     _tabControlador = TabController(length: 4, vsync: this);
     _tabControlador.addListener(() {
       if (!_tabControlador.indexIsChanging) {
+        widget.alCambiarSubPestana?.call(_tabControlador.index);
         setState(() {});
       }
     });
@@ -81,38 +83,6 @@ class _DeudasScreenState extends State<DeudasScreen>
   void dispose() {
     _tabControlador.dispose();
     super.dispose();
-  }
-
-  // Abrir modal según la pestaña actual
-  void _mostrarModalSegunPestana() {
-    if (_tabControlador.index == 3) {
-      widget.alPulsarNuevoGastoFijo();
-      return;
-    }
-
-    TipoDeuda tipoInicial;
-    if (_tabControlador.index == 0) {
-      tipoInicial = TipoDeuda.tarjetaCredito;
-    } else if (_tabControlador.index == 1) {
-      tipoInicial = TipoDeuda.meDeben;
-    } else {
-      tipoInicial = TipoDeuda.debo;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => NuevaDeudaModal(
-        tipoInicial: tipoInicial,
-        listaDeudasExistentes: widget.listaDeudas,
-        alGuardarDeuda: widget.alAgregarDeuda,
-        alAcumularDeuda: widget.alAcumularPrestamo,
-      ),
-    );
   }
 
   // Modal para editar tarjeta de crédito
@@ -483,29 +453,6 @@ class _DeudasScreenState extends State<DeudasScreen>
         .where((d) => d.tipoDeuda == TipoDeuda.debo)
         .toList();
 
-    // Configuración dinámica del botón según la pestaña
-    String textoBoton;
-    IconData iconoBoton;
-    Color colorBoton;
-
-    if (_tabControlador.index == 0) {
-      textoBoton = 'Nueva Tarjeta';
-      iconoBoton = Icons.credit_card_rounded;
-      colorBoton = Colors.yellow.shade700;
-    } else if (_tabControlador.index == 1) {
-      textoBoton = 'Nuevo Préstamo (Me Deben)';
-      iconoBoton = Icons.handshake_rounded;
-      colorBoton = ColoresApp.primarioVerde;
-    } else if (_tabControlador.index == 2) {
-      textoBoton = 'Nueva Deuda (Debo)';
-      iconoBoton = Icons.money_off_csred_rounded;
-      colorBoton = ColoresApp.gastoRojo;
-    } else {
-      textoBoton = 'Nuevo Gasto Fijo';
-      iconoBoton = Icons.add_rounded;
-      colorBoton = const Color(0xFF1976D2);
-    }
-
     return Scaffold(
       backgroundColor: ColoresApp.fondo(context),
       appBar: AppBar(
@@ -577,21 +524,6 @@ class _DeudasScreenState extends State<DeudasScreen>
             ),
           ),
         ],
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 64),
-        child: FloatingActionButton.extended(
-          onPressed: _mostrarModalSegunPestana,
-          backgroundColor: colorBoton,
-          icon: Icon(iconoBoton, color: Colors.white),
-          label: Text(
-            textoBoton,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
       ),
     );
   }

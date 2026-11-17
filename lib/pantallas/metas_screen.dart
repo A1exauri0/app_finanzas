@@ -49,21 +49,6 @@ class _MetasScreenState extends State<MetasScreen> {
   // Filtro seleccionado (0: Todas, 1: En Progreso, 2: Cumplidas)
   int _filtroSeleccionado = 0;
 
-  // Abrir modal de nueva meta
-  void _mostrarModalNuevaMeta() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => NuevaMetaModal(
-        alGuardarMeta: widget.alCrearMeta,
-      ),
-    );
-  }
-
   // Abrir modal de edición para una meta existente
   void _mostrarModalEditarMeta(MetaModelo meta) {
     showModalBottomSheet(
@@ -383,15 +368,6 @@ class _MetasScreenState extends State<MetasScreen> {
                 },
               ),
           ],
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 64),
-        child: FloatingActionButton.extended(
-          onPressed: _mostrarModalNuevaMeta,
-          backgroundColor: const Color(0xFFE65100),
-          icon: const Icon(Icons.add_rounded, color: Colors.white),
-          label: const Text('Nueva Meta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ),
     );

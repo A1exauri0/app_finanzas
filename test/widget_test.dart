@@ -199,7 +199,7 @@ void main() {
     await tester.tap(find.text('Metas'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Nueva Meta'));
+    await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
 
     final camposMeta = find.byType(TextFormField);
