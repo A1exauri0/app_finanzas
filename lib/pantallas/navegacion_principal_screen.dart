@@ -567,15 +567,11 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     }
   }
 
-  // Abrir el modal central de nuevo movimiento
+  // Abrir ventana modal (Dialog) de nuevo movimiento
   void _abrirModalRegistroCentral() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => NuevoMovimientoModal(
         tipoInicial: TipoMovimiento.gasto,
         listaDeudasActivas: _listaDeudas,
@@ -585,15 +581,11 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     );
   }
 
-  // Abrir modal de nueva meta desde Inicio
+  // Abrir ventana modal (Dialog) de nueva meta desde Inicio
   void _abrirModalNuevaMeta() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => NuevaMetaModal(alGuardarMeta: _agregarMeta),
     );
   }
@@ -602,13 +594,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // GESTION DE GASTOS FIJOS Y SUSCRIPCIONES
   // ==========================================
   void _mostrarModalNuevoGastoFijo([GastoFijoModelo? gastoFijoParaEditar]) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => NuevoGastoFijoModal(
         gastoFijoParaEditar: gastoFijoParaEditar,
         listaTarjetas: _listaDeudas,
@@ -698,87 +686,14 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // APERTURA DE MODAL DE DEUDA SEGUN TIPO
   // ==========================================
   void _abrirModalNuevaDeudaSegunTipo(TipoDeuda tipoInicial) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => NuevaDeudaModal(
         tipoInicial: tipoInicial,
         listaDeudasExistentes: _listaDeudas,
         alGuardarDeuda: _agregarDeuda,
         alAcumularDeuda: _acumularPrestamo,
-      ),
-    );
-  }
-
-  // ==========================================
-  // APERTURA DE SECCIONES COMO VENTANAS MODALES
-  // ==========================================
-  void _abrirModalMovimientos() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _VentanaModalContenedor(
-        child: MovimientosScreen(
-          listaMovimientos: _listaMovimientos,
-          listaDeudas: _listaDeudas,
-          alEliminarMovimiento: _eliminarMovimiento,
-          alActualizarMovimiento: _actualizarMovimiento,
-          alPulsarNuevoMovimiento: _abrirModalRegistroCentral,
-          alCerrarVentana: () => Navigator.of(ctx).pop(),
-        ),
-      ),
-    );
-  }
-
-  void _abrirModalMetas() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _VentanaModalContenedor(
-        child: MetasScreen(
-          listaMetas: _listaMetas,
-          alCrearMeta: _agregarMeta,
-          alActualizarMeta: _actualizarMeta,
-          alEliminarMeta: _eliminarMeta,
-          alAbonarMeta: _abonarAMeta,
-          alRetirarMeta: _retirarDeMeta,
-          alCerrarVentana: () => Navigator.of(ctx).pop(),
-        ),
-      ),
-    );
-  }
-
-  void _abrirModalDeudas() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _VentanaModalContenedor(
-        child: DeudasScreen(
-          listaDeudas: _listaDeudas,
-          listaGastosFijos: _listaGastosFijos,
-          alAgregarDeuda: _agregarDeuda,
-          alActualizarTarjeta: _actualizarTarjeta,
-          alActualizarDeudaPersona: _actualizarDeudaPersona,
-          alEliminarDeuda: _eliminarDeuda,
-          alAbonarDeuda: _abonarADeuda,
-          alEditarDiaCorte: _actualizarDiaCorteTarjeta,
-          alAcumularPrestamo: _acumularPrestamo,
-          alPulsarNuevoGastoFijo: () => _mostrarModalNuevoGastoFijo(),
-          alMarcarGastoFijoPagado: _marcarGastoFijoPagado,
-          alEditarGastoFijo: (g) => _mostrarModalNuevoGastoFijo(g),
-          alEliminarGastoFijo: _eliminarGastoFijo,
-          alCerrarVentana: () => Navigator.of(ctx).pop(),
-        ),
       ),
     );
   }
@@ -906,7 +821,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alRegistrarMovimiento: _agregarMovimiento,
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
         alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
-        alPulsarVerTodosMovimientos: _abrirModalMovimientos,
+        alPulsarVerTodosMovimientos: () => setState(() => _indicePestanaActual = 1),
       ),
       MovimientosScreen(
         listaMovimientos: _listaMovimientos,
@@ -915,7 +830,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alActualizarMovimiento: _actualizarMovimiento,
         alPulsarNuevoMovimiento: _abrirModalRegistroCentral,
         alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
-        alCerrarVentana: () => setState(() => _indicePestanaActual = 0),
       ),
       MetasScreen(
         listaMetas: _listaMetas,
@@ -925,7 +839,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alAbonarMeta: _abonarAMeta,
         alRetirarMeta: _retirarDeMeta,
         alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
-        alCerrarVentana: () => setState(() => _indicePestanaActual = 0),
       ),
       DeudasScreen(
         listaDeudas: _listaDeudas,
@@ -944,7 +857,6 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alCambiarSubPestana: (subIndice) =>
             setState(() => _subIndicePestanaDeudas = subIndice),
         alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
-        alCerrarVentana: () => setState(() => _indicePestanaActual = 0),
       ),
     ];
 
@@ -955,19 +867,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         dineroDisponible: _dineroDisponibleReal,
         indicePestanaActual: _indicePestanaActual,
         alSeleccionarPestana: (indice) {
-          switch (indice) {
-            case 1:
-              _abrirModalMovimientos();
-              break;
-            case 2:
-              _abrirModalMetas();
-              break;
-            case 3:
-              _abrirModalDeudas();
-              break;
-            default:
-              setState(() => _indicePestanaActual = 0);
-          }
+          setState(() => _indicePestanaActual = indice);
         },
         alAbrirPanelFinanzas: () => setState(() => _indicePestanaActual = 0),
         alRegistrarMovimiento: _abrirModalRegistroCentral,
@@ -975,7 +875,10 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 850),
-          child: pantallas[_indicePestanaActual],
+          child: IndexedStack(
+            index: _indicePestanaActual,
+            children: pantallas,
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -1016,8 +919,8 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
                           child: _BotonNavegacionItem(
                             icono: Icons.receipt_long_rounded,
                             etiqueta: 'Movimientos',
-                            estaSeleccionado: false,
-                            alPresionar: _abrirModalMovimientos,
+                            estaSeleccionado: _indicePestanaActual == 1,
+                            alPresionar: () => setState(() => _indicePestanaActual = 1),
                           ),
                         ),
                       ],
@@ -1035,73 +938,21 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
                           child: _BotonNavegacionItem(
                             icono: Icons.flag_rounded,
                             etiqueta: 'Metas',
-                            estaSeleccionado: false,
-                            alPresionar: _abrirModalMetas,
+                            estaSeleccionado: _indicePestanaActual == 2,
+                            alPresionar: () => setState(() => _indicePestanaActual = 2),
                           ),
                         ),
                         Expanded(
                           child: _BotonNavegacionItem(
                             icono: Icons.account_balance_wallet_rounded,
                             etiqueta: 'Deudas',
-                            estaSeleccionado: false,
-                            alPresionar: _abrirModalDeudas,
+                            estaSeleccionado: _indicePestanaActual == 3,
+                            alPresionar: () => setState(() => _indicePestanaActual = 3),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ==========================================
-// SUBCOMPONENTE PRIVADO: CONTENEDOR DE VENTANA MODAL
-// ==========================================
-class _VentanaModalContenedor extends StatelessWidget {
-  final Widget child;
-
-  const _VentanaModalContenedor({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return FractionallySizedBox(
-      heightFactor: 0.94,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 850),
-          child: Container(
-            decoration: BoxDecoration(
-              color: ColoresApp.fondo(context),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-              child: Column(
-                children: [
-                  // Tirador táctil superior de ventana modal
-                  Container(
-                    margin: const EdgeInsets.only(top: 10, bottom: 4),
-                    width: 38,
-                    height: 4.5,
-                    decoration: BoxDecoration(
-                      color: ColoresApp.subtexto(context).withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  Expanded(child: child),
                 ],
               ),
             ),

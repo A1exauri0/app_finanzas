@@ -85,18 +85,22 @@ class _EditarDeudaPersonaModalState extends State<EditarDeudaPersonaModal> {
     final bool esMeDeben = widget.deuda.tipoDeuda == TipoDeuda.meDeben;
     final Color colorMarca = esMeDeben ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo;
 
-    return Center(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: ColoresApp.tarjeta(context),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 650,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          maxWidth: 620,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
         child: Padding(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Form(
             key: _formularioClave,
@@ -105,29 +109,33 @@ class _EditarDeudaPersonaModalState extends State<EditarDeudaPersonaModal> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              // Barra de arrastre
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                  // Encabezado con título y botón de cierre 'X'
+                  Row(
+                    children: [
+                      Icon(
+                        esMeDeben ? Icons.person_rounded : Icons.money_off_rounded,
+                        color: colorMarca,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          esMeDeben ? 'Editar Deudor' : 'Editar Deuda',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: ColoresApp.texto(context),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Cerrar ventana',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              Text(
-                esMeDeben ? 'Editar Deudor' : 'Editar Deuda',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: ColoresApp.textoPrincipal,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
               // Nombre / Entidad
               TextFormField(

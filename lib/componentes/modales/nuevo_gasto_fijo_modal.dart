@@ -166,18 +166,22 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: ColoresApp.tarjeta(context),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 650,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          maxWidth: 620,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
         child: Padding(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Form(
             key: _formularioClave,
@@ -186,32 +190,35 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              // Barra indicadora
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                  // Encabezado con título y botón de cierre 'X'
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        color: _colorSeleccionado,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _esModoEdicion
+                              ? 'Editar Gasto Fijo'
+                              : 'Nuevo Gasto Fijo o Mensual',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: ColoresApp.texto(context),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Cerrar ventana',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Título del modal
-              Text(
-                _esModoEdicion
-                    ? 'Editar Gasto Fijo / Suscripción'
-                    : 'Nuevo Gasto Fijo o Mensual',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: ColoresApp.texto(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
               // Campo de Nombre / Servicio
               TextFormField(
@@ -339,6 +346,7 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                 if (_pagarConTarjeta) ...[
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue:
                         _tarjetaSeleccionadaId ??
                         _tarjetasCreditoDisponibles.first.id,
@@ -350,7 +358,10 @@ class _NuevoGastoFijoModalState extends State<NuevoGastoFijoModal> {
                     items: _tarjetasCreditoDisponibles.map((t) {
                       return DropdownMenuItem<String>(
                         value: t.id,
-                        child: Text(t.tituloOEntidad),
+                        child: Text(
+                          t.tituloOEntidad,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) {

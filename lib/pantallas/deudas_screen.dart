@@ -20,7 +20,6 @@ import '../modelos/gasto_fijo_modelo.dart';
 import '../componentes/cards/gastos_fijos_resumen_card.dart';
 import '../componentes/modales/editar_tarjeta_modal.dart';
 import '../componentes/modales/editar_deuda_persona_modal.dart';
-import '../componentes/modales/nueva_deuda_modal.dart';
 import '../componentes/comunes/boton_modo_oscuro.dart';
 
 // ==========================================
@@ -91,15 +90,11 @@ class _DeudasScreenState extends State<DeudasScreen>
     super.dispose();
   }
 
-  // Modal para editar tarjeta de crédito
+  // Ventana modal (Dialog) para editar tarjeta de crédito
   void _mostrarModalEditarTarjeta(DeudaModelo tarjeta) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => EditarTarjetaModal(
         tarjeta: tarjeta,
         alGuardarCambios: widget.alActualizarTarjeta,
@@ -107,15 +102,11 @@ class _DeudasScreenState extends State<DeudasScreen>
     );
   }
 
-  // Modal para editar persona o deuda de tercero
+  // Ventana modal (Dialog) para editar persona o deuda de tercero
   void _mostrarModalEditarPersona(DeudaModelo deuda) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => EditarDeudaPersonaModal(
         deuda: deuda,
         alGuardarCambios: widget.alActualizarDeudaPersona,
@@ -546,73 +537,6 @@ class _DeudasScreenState extends State<DeudasScreen>
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: _tabControlador.index == 0
-            ? Colors.purple.shade700
-            : (_tabControlador.index == 1
-                ? ColoresApp.primarioVerde
-                : (_tabControlador.index == 2
-                    ? ColoresApp.gastoRojo
-                    : const Color(0xFF1976D2))),
-        tooltip: 'Nuevo Registro',
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
-        onPressed: () {
-          switch (_tabControlador.index) {
-            case 0:
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: ColoresApp.tarjeta(context),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                builder: (ctx) => NuevaDeudaModal(
-                  tipoInicial: TipoDeuda.tarjetaCredito,
-                  listaDeudasExistentes: widget.listaDeudas,
-                  alGuardarDeuda: widget.alAgregarDeuda,
-                  alAcumularDeuda: widget.alAcumularPrestamo,
-                ),
-              );
-              break;
-            case 1:
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: ColoresApp.tarjeta(context),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                builder: (ctx) => NuevaDeudaModal(
-                  tipoInicial: TipoDeuda.meDeben,
-                  listaDeudasExistentes: widget.listaDeudas,
-                  alGuardarDeuda: widget.alAgregarDeuda,
-                  alAcumularDeuda: widget.alAcumularPrestamo,
-                ),
-              );
-              break;
-            case 2:
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: ColoresApp.tarjeta(context),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                builder: (ctx) => NuevaDeudaModal(
-                  tipoInicial: TipoDeuda.debo,
-                  listaDeudasExistentes: widget.listaDeudas,
-                  alGuardarDeuda: widget.alAgregarDeuda,
-                  alAcumularDeuda: widget.alAcumularPrestamo,
-                ),
-              );
-              break;
-            case 3:
-              widget.alPulsarNuevoGastoFijo();
-              break;
-          }
-        },
       ),
     );
   }

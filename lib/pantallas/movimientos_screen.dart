@@ -167,12 +167,11 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
     return agrupados;
   }
 
-  // Abrir modal de detalles y acciones
+  // Abrir ventana modal (Dialog) de detalles y acciones
   void _mostrarDetallesMovimiento(MovimientoModelo movimiento) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
       builder: (ctx) => DetalleMovimientoModal(
         movimiento: movimiento,
         alPulsarEditar: () {
@@ -187,15 +186,11 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
     );
   }
 
-  // Modal para editar el movimiento
+  // Ventana modal (Dialog) para editar el movimiento
   void _mostrarModalEdicion(MovimientoModelo movimiento) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+      barrierDismissible: true,
       builder: (ctx) => EditarMovimientoModal(
         movimientoOriginal: movimiento,
         alGuardarCambios: widget.alActualizarMovimiento,
@@ -535,15 +530,6 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
           ),
         ],
       ),
-      floatingActionButton: widget.alPulsarNuevoMovimiento != null
-          ? FloatingActionButton(
-              backgroundColor: ColoresApp.primarioVerde,
-              tooltip: 'Nuevo Movimiento',
-              shape: const CircleBorder(),
-              child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
-              onPressed: widget.alPulsarNuevoMovimiento,
-            )
-          : null,
     );
   }
 }

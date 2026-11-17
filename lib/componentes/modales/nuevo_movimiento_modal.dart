@@ -321,18 +321,22 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
         .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
         .toList();
 
-    return Center(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: ColoresApp.tarjeta(context),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 650,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          maxWidth: 620,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
         child: Padding(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Form(
             key: _formularioClave,
@@ -341,33 +345,36 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              // Barra superior de arrastre
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+                  // Encabezado de la ventana con título y botón 'X'
+                  Row(
+                    children: [
+                      Icon(
+                        esIngreso ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                        color: colorActivo,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          esIngreso ? 'Registrar Ingreso' : 'Registrar Gasto',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: colorActivo,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Cerrar ventana',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
-              // Título del Modal
-              Text(
-                esIngreso ? 'Registrar Ingreso' : 'Registrar Gasto',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: colorActivo,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 18),
-
-              // Selector de tipo (Ingreso / Gasto)
-              SegmentedButton<TipoMovimiento>(
+                  // Selector de tipo (Ingreso / Gasto)
+                  SegmentedButton<TipoMovimiento>(
                 segments: const [
                   ButtonSegment(
                     value: TipoMovimiento.ingreso,
@@ -525,14 +532,17 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                             : ColoresApp.gastoRojo,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        'Dinero disponible: \$${widget.dineroDisponible.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: widget.dineroDisponible >= 0
-                              ? ColoresApp.textoSecundario
-                              : ColoresApp.gastoRojo,
+                      Flexible(
+                        child: Text(
+                          'Dinero disponible: \$${widget.dineroDisponible.toStringAsFixed(2)}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: widget.dineroDisponible >= 0
+                                ? ColoresApp.textoSecundario
+                                : ColoresApp.gastoRojo,
+                          ),
                         ),
                       ),
                     ],
@@ -634,6 +644,7 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
 
               // Selector de Categoría (Dinámico según Ingreso o Gasto)
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 key: ValueKey('categoria_$_tipoSeleccionado'),
                 initialValue: _categoriaSeleccionada,
                 decoration: InputDecoration(
@@ -648,7 +659,12 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                       children: [
                         Icon(cat['icono'] as IconData, size: 20, color: ColoresApp.textoSecundario),
                         const SizedBox(width: 10),
-                        Text(cat['nombre'] as String),
+                        Expanded(
+                          child: Text(
+                            cat['nombre'] as String,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -695,6 +711,7 @@ class _NuevoMovimientoModalState extends State<NuevoMovimientoModal> {
                   )
                 else
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: _deudaSeleccionadaId,
                     decoration: InputDecoration(
                       labelText: esCobroDeuda ? '¿Quién te paga?' : '¿Qué tarjeta o deuda abonas?',

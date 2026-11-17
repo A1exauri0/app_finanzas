@@ -210,12 +210,12 @@ void main() {
     await tester.tap(find.text('Crear Meta de Compra'));
     await tester.pumpAndSettle();
 
-    // 3. Cerramos la ventana modal de Metas con el botón X y verificamos disponible en Inicio
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    // 3. Volvemos a Inicio y verificamos disponible
+    await tester.tap(find.text('Inicio'));
     await tester.pumpAndSettle();
     expect(find.text('\$800.00'), findsWidgets);
 
-    // 4. Volvemos a abrir Metas como ventana modal y retiramos \$100 de la meta
+    // 4. Volvemos a Metas y retiramos \$100 de la meta
     await tester.tap(find.text('Metas'));
     await tester.pumpAndSettle();
 
@@ -227,8 +227,8 @@ void main() {
     await tester.tap(find.text('Confirmar Retiro'));
     await tester.pumpAndSettle();
 
-    // 5. Cerramos la ventana modal con el botón X y verificamos que el disponible subió a \$900.00
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    // 5. Volvemos a Inicio y verificamos que el disponible subió a \$900.00
+    await tester.tap(find.text('Inicio'));
     await tester.pumpAndSettle();
     expect(find.text('\$900.00'), findsWidgets);
 
@@ -294,8 +294,8 @@ void main() {
     // Verificamos que ahora diga 'Listo'
     expect(find.text('Listo'), findsOneWidget);
 
-    // 4. Cerramos la ventana modal de Deudas con el botón X y verificamos que el dinero disponible haya descontado \$129 (1000 - 129 = 871.00)
-    await tester.tap(find.byIcon(Icons.close_rounded));
+    // 4. Volvemos a Inicio y verificamos que el dinero disponible haya descontado \$129 (1000 - 129 = 871.00)
+    await tester.tap(find.text('Inicio'));
     await tester.pumpAndSettle();
     expect(find.text('\$871.00'), findsWidgets);
 
@@ -318,29 +318,27 @@ void main() {
     expect(find.text('Metas'), findsOneWidget);
     expect(find.text('Deudas'), findsOneWidget);
 
-    // Abrimos ventana modal de Movimientos y la cerramos con el botón X
-    await tester.tap(find.text('Movimientos'));
+    // Abrimos ventana modal tipo diálogo de Nuevo Movimiento desde el botón (+) y la cerramos con el botón X
+    final botonCentral = find.byType(FloatingActionButton);
+    await tester.tap(botonCentral);
     await tester.pumpAndSettle();
-    expect(find.text('Historial de Movimientos'), findsOneWidget);
+    expect(find.text('Registrar Gasto'), findsOneWidget);
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     await tester.tap(find.byIcon(Icons.close_rounded));
     await tester.pumpAndSettle();
+    expect(find.text('Registrar Gasto'), findsNothing);
 
-    // Abrimos ventana modal de Metas y la cerramos con el botón X
+    // Navegamos a Metas, abrimos el diálogo de Nueva Meta y la cerramos con el botón X
     await tester.tap(find.text('Metas'));
     await tester.pumpAndSettle();
     expect(find.text('Objetivos de Compra'), findsOneWidget);
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Nueva Meta de Compra o Ahorro'), findsOneWidget);
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     await tester.tap(find.byIcon(Icons.close_rounded));
     await tester.pumpAndSettle();
-
-    // Abrimos ventana modal de Deudas y la cerramos con el botón X
-    await tester.tap(find.text('Deudas'));
-    await tester.pumpAndSettle();
-    expect(find.text('Deudas & Compromisos'), findsOneWidget);
-    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.close_rounded));
-    await tester.pumpAndSettle();
+    expect(find.text('Nueva Meta de Compra o Ahorro'), findsNothing);
 
     // Drenamos temporizadores de sqflite
     await tester.pump(const Duration(seconds: 12));

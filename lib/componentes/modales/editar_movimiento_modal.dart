@@ -135,18 +135,22 @@ class _EditarMovimientoModalState extends State<EditarMovimientoModal> {
     final bool esIngreso = widget.movimientoOriginal.tipo == TipoMovimiento.ingreso;
     final Color colorTema = esIngreso ? ColoresApp.ingresoVerde : ColoresApp.gastoRojo;
 
-    return Center(
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: ColoresApp.tarjeta(context),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 650,
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          maxWidth: 620,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
         ),
         child: Padding(
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
           ),
           child: Form(
             key: _formularioClave,
@@ -155,49 +159,41 @@ class _EditarMovimientoModalState extends State<EditarMovimientoModal> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              // Barra indicadora de arrastre
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Encabezado
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: colorTema.withValues(alpha: 0.12),
-                    child: Icon(Icons.edit_rounded, color: colorTema),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Editar Movimiento',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: ColoresApp.textoPrincipal,
-                          ),
+                  // Encabezado con título y botón de cierre 'X'
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: colorTema.withValues(alpha: 0.12),
+                        child: Icon(Icons.edit_rounded, color: colorTema),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Editar Movimiento',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: ColoresApp.texto(context),
+                              ),
+                            ),
+                            Text(
+                              esIngreso ? 'Ingreso registrado' : 'Gasto registrado',
+                              style: TextStyle(fontSize: 13, color: colorTema, fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
-                        Text(
-                          esIngreso ? 'Ingreso registrado' : 'Gasto registrado',
-                          style: TextStyle(fontSize: 13, color: colorTema, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        tooltip: 'Cerrar ventana',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
               // Campo de Monto
               TextFormField(
