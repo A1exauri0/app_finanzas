@@ -234,4 +234,60 @@ void main() {
     // Drenamos los temporizadores internos de sqflite
     await tester.pump(const Duration(seconds: 12));
   });
+
+  testWidgets('Verifica registro y pago en 1 toque de gastos fijos mensuales', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(const AppFinanzas());
+    await tester.pumpAndSettle();
+
+    // 1. Ingresamos saldo inicial (\$1000)
+    final botonAgregar = find.byType(FloatingActionButton);
+    await tester.tap(botonAgregar);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ingreso').last);
+    await tester.pumpAndSettle();
+
+    final campos = find.byType(TextFormField);
+    await tester.enterText(campos.first, '1000');
+    await tester.enterText(campos.at(1), 'Sueldo');
+    await tester.tap(find.text('Guardar Movimiento'));
+    await tester.pumpAndSettle();
+
+    // Verificamos presencia de Gastos Fijos del Mes en Inicio
+    expect(find.text('Gastos Fijos del Mes'), findsOneWidget);
+
+    // 2. Tocamos botón "Agregar" en Gastos Fijos
+    await tester.tap(find.text('Agregar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nuevo Gasto Fijo o Mensual'), findsOneWidget);
+
+    // Usamos sugerencia rápida de Spotify (\$129)
+    await tester.tap(find.text('Spotify (\$129)'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Registrar Gasto Fijo'));
+    await tester.pumpAndSettle();
+
+    // Verificamos que aparezca Spotify en la lista
+    expect(find.text('Spotify'), findsOneWidget);
+    expect(find.text('Pagar'), findsOneWidget);
+
+    // 3. Pagamos Spotify en 1 toque
+    await tester.tap(find.text('Pagar'));
+    await tester.pumpAndSettle();
+
+    // Verificamos que ahora diga 'Listo'
+    expect(find.text('Listo'), findsOneWidget);
+
+    // Verificamos que el dinero disponible haya descontado \$129 (1000 - 129 = 871.00)
+    expect(find.text('\$871.00'), findsWidgets);
+
+    // Drenamos los temporizadores internos de sqflite
+    await tester.pump(const Duration(seconds: 12));
+  });
 }

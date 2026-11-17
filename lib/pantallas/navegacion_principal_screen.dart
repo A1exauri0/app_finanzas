@@ -14,6 +14,7 @@ import '../constantes/colores_app.dart';
 import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
 import '../modelos/meta_modelo.dart';
+import '../modelos/gasto_fijo_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE SERVICIOS
@@ -25,6 +26,7 @@ import '../servicios/base_datos_servicio.dart';
 // ==========================================
 import '../componentes/modales/nuevo_movimiento_modal.dart';
 import '../componentes/modales/nueva_meta_modal.dart';
+import '../componentes/modales/nuevo_gasto_fijo_modal.dart';
 import '../componentes/menu/menu_lateral_drawer.dart';
 
 // ==========================================
@@ -58,6 +60,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   List<MetaModelo> _listaMetas = [];
   List<DeudaModelo> _listaDeudas = [];
   List<MovimientoModelo> _listaMovimientos = [];
+  List<GastoFijoModelo> _listaGastosFijos = [];
 
   @override
   void initState() {
@@ -72,12 +75,14 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
           .obtenerMovimientos();
       final deudas = await BaseDatosServicio.instancia.obtenerDeudas();
       final metas = await BaseDatosServicio.instancia.obtenerMetas();
+      final gastosFijos = await BaseDatosServicio.instancia.obtenerGastosFijos();
 
       if (mounted) {
         setState(() {
           _listaMovimientos = movimientos;
           _listaDeudas = deudas;
           _listaMetas = metas;
+          _listaGastosFijos = gastosFijos;
         });
       }
     } catch (_) {
@@ -568,6 +573,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
           listaMovimientos: _listaMovimientos,
           listaDeudas: _listaDeudas,
           listaMetas: _listaMetas,
+          listaGastosFijos: _listaGastosFijos,
         ),
       ),
     );
@@ -604,6 +610,102 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     );
   }
 
+  // ==========================================
+  // GESTION DE GASTOS FIJOS Y SUSCRIPCIONES
+  // ==========================================
+  void _mostrarModalNuevoGastoFijo([GastoFijoModelo? gastoFijoParaEditar]) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: ColoresApp.tarjeta(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => NuevoGastoFijoModal(
+        gastoFijoParaEditar: gastoFijoParaEditar,
+        listaTarjetas: _listaDeudas,
+        alGuardarGastoFijo: (gasto) {
+          if (gastoFijoParaEditar != null) {
+            _actualizarGastoFijo(gasto);
+          } else {
+            _agregarGastoFijo(gasto);
+          }
+        },
+      ),
+    );
+  }
+
+  void _agregarGastoFijo(GastoFijoModelo nuevoGastoFijo) {
+    setState(() {
+      _listaGastosFijos.add(nuevoGastoFijo);
+      _listaGastosFijos.sort((a, b) => a.diaPago.compareTo(b.diaPago));
+    });
+    BaseDatosServicio.instancia.insertarGastoFijo(nuevoGastoFijo);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Gasto fijo "${nuevoGastoFijo.nombre}" registrado'),
+        backgroundColor: ColoresApp.primarioVerde,
+      ),
+    );
+  }
+
+  void _actualizarGastoFijo(GastoFijoModelo gastoActualizado) {
+    setState(() {
+      final index = _listaGastosFijos.indexWhere((g) => g.id == gastoActualizado.id);
+      if (index != -1) {
+        _listaGastosFijos[index] = gastoActualizado;
+        _listaGastosFijos.sort((a, b) => a.diaPago.compareTo(b.diaPago));
+      }
+    });
+    BaseDatosServicio.instancia.actualizarGastoFijo(gastoActualizado);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Gasto fijo "${gastoActualizado.nombre}" actualizado'),
+        backgroundColor: ColoresApp.primarioVerde,
+      ),
+    );
+  }
+
+  void _eliminarGastoFijo(GastoFijoModelo gastoAEliminar) {
+    setState(() {
+      _listaGastosFijos.removeWhere((g) => g.id == gastoAEliminar.id);
+    });
+    BaseDatosServicio.instancia.eliminarGastoFijo(gastoAEliminar.id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('"${gastoAEliminar.nombre}" eliminado de gastos fijos'),
+        backgroundColor: ColoresApp.gastoRojo,
+      ),
+    );
+  }
+
+  // Marcar gasto fijo como pagado en 1 toque y registrar el movimiento
+  void _marcarGastoFijoPagado(GastoFijoModelo gasto) {
+    setState(() {
+      gasto.marcarPagadoMesActual();
+    });
+    BaseDatosServicio.instancia.actualizarGastoFijo(gasto);
+
+    // Generar automáticamente el movimiento financiero correspondiente
+    final movimientoPago = MovimientoModelo(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      titulo: 'Pago fijo: ${gasto.nombre}',
+      monto: gasto.monto,
+      fecha: DateTime.now(),
+      tipo: TipoMovimiento.gasto,
+      icono: gasto.icono,
+      categoria: gasto.categoria,
+      pagadoConTarjeta: gasto.pagarConTarjeta,
+      idTarjetaUtilizada: gasto.idTarjeta,
+      nombreTarjetaUtilizada: gasto.nombreTarjeta,
+    );
+
+    _agregarMovimiento(movimientoPago);
+  }
+
   @override
   Widget build(BuildContext context) {
     // Lista de pantallas con el estado compartido
@@ -611,10 +713,15 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       InicioScreen(
         listaMovimientos: _listaMovimientos,
         listaDeudas: _listaDeudas,
+        listaGastosFijos: _listaGastosFijos,
         dineroDisponible: _dineroDisponibleReal,
         alRegistrarMovimiento: _agregarMovimiento,
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
         alAbrirPanelFinanzas: _abrirPanelFinanzas,
+        alPulsarNuevoGastoFijo: () => _mostrarModalNuevoGastoFijo(),
+        alMarcarGastoFijoPagado: _marcarGastoFijoPagado,
+        alEditarGastoFijo: (g) => _mostrarModalNuevoGastoFijo(g),
+        alEliminarGastoFijo: _eliminarGastoFijo,
       ),
       MovimientosScreen(
         listaMovimientos: _listaMovimientos,

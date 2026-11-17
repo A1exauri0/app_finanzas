@@ -13,6 +13,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart' as sqflite_ffi;
 import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
 import '../modelos/meta_modelo.dart';
+import '../modelos/gasto_fijo_modelo.dart';
 
 // ==========================================
 // SERVICIO SINGLETON: GESTOR DE BASE DE DATOS SQLITE
@@ -85,6 +86,23 @@ class BaseDatosServicio {
       CREATE TABLE IF NOT EXISTS configuraciones (
         clave TEXT PRIMARY KEY,
         valor TEXT NOT NULL
+      )
+    ''');
+
+    // Aseguramos que la tabla de gastos fijos y suscripciones exista
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS gastos_fijos (
+        id TEXT PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        monto REAL NOT NULL,
+        diaPago INTEGER NOT NULL,
+        categoria TEXT NOT NULL,
+        iconoCodePoint INTEGER NOT NULL,
+        colorValue INTEGER NOT NULL,
+        pagarConTarjeta INTEGER NOT NULL DEFAULT 0,
+        idTarjeta TEXT,
+        nombreTarjeta TEXT,
+        ultimoMesPagado TEXT
       )
     ''');
 
@@ -162,6 +180,23 @@ class BaseDatosServicio {
         notas TEXT
       )
     ''');
+
+    // 5. Tabla de Gastos Fijos y Suscripciones Recurrentes
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS gastos_fijos (
+        id TEXT PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        monto REAL NOT NULL,
+        diaPago INTEGER NOT NULL,
+        categoria TEXT NOT NULL,
+        iconoCodePoint INTEGER NOT NULL,
+        colorValue INTEGER NOT NULL,
+        pagarConTarjeta INTEGER NOT NULL DEFAULT 0,
+        idTarjeta TEXT,
+        nombreTarjeta TEXT,
+        ultimoMesPagado TEXT
+      )
+    ''');
   }
 
   // Vaciar completamente todas las tablas de la base de datos
@@ -172,6 +207,7 @@ class BaseDatosServicio {
       await txn.delete('movimientos');
       await txn.delete('deudas');
       await txn.delete('metas');
+      await txn.delete('gastos_fijos');
     });
   }
 
@@ -320,6 +356,42 @@ class BaseDatosServicio {
   Future<void> eliminarMeta(String id) async {
     final db = await database;
     await db.delete('metas', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ==========================================
+  // OPERACIONES CRUD: GASTOS FIJOS Y SUSCRIPCIONES RECURRENTES
+  // ==========================================
+  Future<List<GastoFijoModelo>> obtenerGastosFijos() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'gastos_fijos',
+      orderBy: 'diaPago ASC',
+    );
+    return maps.map((m) => GastoFijoModelo.fromMap(m)).toList();
+  }
+
+  Future<void> insertarGastoFijo(GastoFijoModelo gastoFijo) async {
+    final db = await database;
+    await db.insert(
+      'gastos_fijos',
+      gastoFijo.toMap(),
+      conflictAlgorithm: sqflite.ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> actualizarGastoFijo(GastoFijoModelo gastoFijo) async {
+    final db = await database;
+    await db.update(
+      'gastos_fijos',
+      gastoFijo.toMap(),
+      where: 'id = ?',
+      whereArgs: [gastoFijo.id],
+    );
+  }
+
+  Future<void> eliminarGastoFijo(String id) async {
+    final db = await database;
+    await db.delete('gastos_fijos', where: 'id = ?', whereArgs: [id]);
   }
 
   // ==========================================

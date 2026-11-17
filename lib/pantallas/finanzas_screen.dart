@@ -19,6 +19,7 @@ import '../servicios/tema_servicio.dart';
 import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
 import '../modelos/meta_modelo.dart';
+import '../modelos/gasto_fijo_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
@@ -33,12 +34,14 @@ class FinanzasScreen extends StatelessWidget {
   final List<MovimientoModelo> listaMovimientos;
   final List<DeudaModelo> listaDeudas;
   final List<MetaModelo> listaMetas;
+  final List<GastoFijoModelo> listaGastosFijos;
 
   const FinanzasScreen({
     super.key,
     required this.listaMovimientos,
     required this.listaDeudas,
     required this.listaMetas,
+    this.listaGastosFijos = const [],
   });
 
   // Cálculos financieros
