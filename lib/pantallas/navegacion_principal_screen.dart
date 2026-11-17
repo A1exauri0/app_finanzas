@@ -37,7 +37,6 @@ import 'inicio_screen.dart';
 import 'movimientos_screen.dart';
 import 'metas_screen.dart';
 import 'deudas_screen.dart';
-import 'finanzas_screen.dart';
 
 // ==========================================
 // PANTALLA CONTENEDORA: NAVEGACION PRINCIPAL
@@ -568,19 +567,9 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
     }
   }
 
-  // Navegar a la pantalla de análisis financiero y gráficas
+  // Navegar a la pantalla/pestaña de inicio y gráficas
   void _abrirPanelFinanzas() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (ctx) => FinanzasScreen(
-          listaMovimientos: _listaMovimientos,
-          listaDeudas: _listaDeudas,
-          listaMetas: _listaMetas,
-          listaGastosFijos: _listaGastosFijos,
-        ),
-      ),
-    );
+    setState(() => _indicePestanaActual = 0);
   }
 
   // Abrir el modal central de nuevo movimiento
@@ -847,10 +836,13 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       InicioScreen(
         listaMovimientos: _listaMovimientos,
         listaDeudas: _listaDeudas,
+        listaMetas: _listaMetas,
+        listaGastosFijos: _listaGastosFijos,
         dineroDisponible: _dineroDisponibleReal,
         alRegistrarMovimiento: _agregarMovimiento,
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
-        alAbrirPanelFinanzas: _abrirPanelFinanzas,
+        alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
+        alPulsarVerTodosMovimientos: () => setState(() => _indicePestanaActual = 1),
       ),
       MovimientosScreen(
         listaMovimientos: _listaMovimientos,
@@ -858,6 +850,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alEliminarMovimiento: _eliminarMovimiento,
         alActualizarMovimiento: _actualizarMovimiento,
         alPulsarNuevoMovimiento: _abrirModalRegistroCentral,
+        alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       MetasScreen(
         listaMetas: _listaMetas,
@@ -866,6 +859,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alEliminarMeta: _eliminarMeta,
         alAbonarMeta: _abonarAMeta,
         alRetirarMeta: _retirarDeMeta,
+        alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       DeudasScreen(
         listaDeudas: _listaDeudas,
@@ -883,6 +877,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alEliminarGastoFijo: _eliminarGastoFijo,
         alCambiarSubPestana: (subIndice) =>
             setState(() => _subIndicePestanaDeudas = subIndice),
+        alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
       ),
     ];
 

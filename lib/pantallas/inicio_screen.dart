@@ -9,405 +9,314 @@ import 'package:flutter/material.dart';
 import '../constantes/colores_app.dart';
 
 // ==========================================
-// IMPORTACIONES DE SERVICIOS
-// ==========================================
-import '../servicios/tema_servicio.dart';
-
-// ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
 import '../modelos/deuda_modelo.dart';
+import '../modelos/meta_modelo.dart';
+import '../modelos/gasto_fijo_modelo.dart';
 
 // ==========================================
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/cards/balance_card.dart';
 import '../componentes/cards/movimiento_item_tile.dart';
-import '../componentes/modales/nuevo_movimiento_modal.dart';
+import '../componentes/graficas/grafica_dona_categorias.dart';
+import '../componentes/comunes/boton_modo_oscuro.dart';
 
 // ==========================================
-// PANTALLA PRINCIPAL: INICIO
+// PANTALLA PRINCIPAL: INICIO CON GRAFICAS & RESUMEN
 // ==========================================
 class InicioScreen extends StatelessWidget {
   final List<MovimientoModelo> listaMovimientos;
   final List<DeudaModelo> listaDeudas;
+  final List<MetaModelo> listaMetas;
+  final List<GastoFijoModelo> listaGastosFijos;
   final double dineroDisponible;
-  final Function(MovimientoModelo) alRegistrarMovimiento;
+  final Function(MovimientoModelo)? alRegistrarMovimiento;
   final VoidCallback? alPulsarNuevaMeta;
-  final VoidCallback? alAbrirPanelFinanzas;
+  final VoidCallback? alAbrirMenuLateral;
+  final VoidCallback? alPulsarVerTodosMovimientos;
 
   const InicioScreen({
     super.key,
     required this.listaMovimientos,
     required this.listaDeudas,
+    this.listaMetas = const [],
+    this.listaGastosFijos = const [],
     this.dineroDisponible = 0.0,
-    required this.alRegistrarMovimiento,
+    this.alRegistrarMovimiento,
     this.alPulsarNuevaMeta,
-    this.alAbrirPanelFinanzas,
+    this.alAbrirMenuLateral,
+    this.alPulsarVerTodosMovimientos,
   });
 
-  // Métodos de cálculo dinámico para el balance
+  // ==========================================
+  // METODOS DE CALCULO FINANCIERO Y GRAFICAS
+  // ==========================================
   double get _totalIngresos => listaMovimientos
       .where((m) => m.tipo == TipoMovimiento.ingreso)
-      .fold(0.0, (acumulado, m) => acumulado + m.monto);
+      .fold(0.0, (acum, m) => acum + m.monto);
 
-  double get _totalGastos => listaMovimientos
+  double get _totalGastosGeneral => listaMovimientos
       .where((m) => m.tipo == TipoMovimiento.gasto)
-      .fold(0.0, (acumulado, m) => acumulado + m.monto);
+      .fold(0.0, (acum, m) => acum + m.monto);
 
-  // Función para abrir el modal de nuevo movimiento
-  void _mostrarModalRegistro(BuildContext context, TipoMovimiento tipoInicial) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: ColoresApp.tarjeta(context),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => NuevoMovimientoModal(
-        tipoInicial: tipoInicial,
-        listaDeudasActivas: listaDeudas,
-        dineroDisponible: dineroDisponible,
-        alGuardarMovimiento: alRegistrarMovimiento,
-      ),
-    );
+  double get _gastosEfectivoDebito => listaMovimientos
+      .where((m) => m.tipo == TipoMovimiento.gasto && !m.pagadoConTarjeta)
+      .fold(0.0, (acum, m) => acum + m.monto);
+
+  double get _totalAhorradoMetas => listaMetas.fold(
+    0.0,
+    (acum, meta) => acum + meta.montoAhorrado,
+  );
+
+  // Segmentos para la gráfica de dona interactiva
+  List<SegmentoCategoriaDona> get _segmentosGastosPorCategoria {
+    final gastos = listaMovimientos.where((m) => m.tipo == TipoMovimiento.gasto);
+    final Map<String, double> agrupados = {};
+    final Map<String, IconData> iconos = {};
+
+    for (final m in gastos) {
+      agrupados[m.categoria] = (agrupados[m.categoria] ?? 0.0) + m.monto;
+      iconos[m.categoria] = m.icono;
+    }
+
+    final coloresPaleta = [
+      ColoresApp.primarioVerde,
+      const Color(0xFFE53935),
+      const Color(0xFFFB8C00),
+      const Color(0xFF8E24AA),
+      const Color(0xFF1E88E5),
+      const Color(0xFF00897B),
+      const Color(0xFF43A047),
+      const Color(0xFF3949AB),
+      const Color(0xFF6D4C41),
+    ];
+
+    int indiceColor = 0;
+    return agrupados.entries.map((entry) {
+      final color = coloresPaleta[indiceColor % coloresPaleta.length];
+      indiceColor++;
+      return SegmentoCategoriaDona(
+        nombre: entry.key,
+        monto: entry.value,
+        color: color,
+        icono: iconos[entry.key] ?? Icons.category_rounded,
+      );
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final double porcentajeComprometido = _totalIngresos > 0
+        ? ((_gastosEfectivoDebito + _totalAhorradoMetas) / _totalIngresos)
+            .clamp(0.0, 1.0)
+        : 1.0;
+
     return Scaffold(
       backgroundColor: ColoresApp.fondo(context),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Encabezado responsivo con título, alternador de modo oscuro y botón de finanzas
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Mi Resumen Financiero',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                        color: ColoresApp.texto(context),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Botón para alternar Modo Claro / Oscuro
-                      InkWell(
-                        onTap: () =>
-                            TemaServicio.instancia.alternarTema(context),
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: ColoresApp.tarjeta(context),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: ColoresApp.borde(context),
-                            ),
-                          ),
-                          child: Icon(
-                            ColoresApp.esOscuro(context)
-                                ? Icons.light_mode_rounded
-                                : Icons.dark_mode_rounded,
-                            size: 18,
-                            color: ColoresApp.esOscuro(context)
-                                ? Colors.amber
-                                : ColoresApp.texto(context),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      if (alAbrirPanelFinanzas != null)
-                        InkWell(
-                          onTap: alAbrirPanelFinanzas,
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: ColoresApp.primarioVerde.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.pie_chart_rounded,
-                                  size: 18,
-                                  color: ColoresApp.primarioVerde,
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Gráficas',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: ColoresApp.primarioVerde,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-
-              // Banner interactivo: Dinero Disponible Líquido
-              InkWell(
-                onTap: alAbrirPanelFinanzas,
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: dineroDisponible >= 0
-                        ? ColoresApp.primarioVerde.withValues(
-                            alpha: ColoresApp.esOscuro(context) ? 0.18 : 0.08,
-                          )
-                        : (ColoresApp.esOscuro(context)
-                              ? Colors.red.shade900.withValues(alpha: 0.3)
-                              : Colors.red.shade50),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: dineroDisponible >= 0
-                          ? ColoresApp.primarioVerde.withValues(alpha: 0.3)
-                          : (ColoresApp.esOscuro(context)
-                                ? Colors.red.shade700
-                                : Colors.red.shade300),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        dineroDisponible >= 0
-                            ? Icons.check_circle_rounded
-                            : Icons.warning_rounded,
-                        color: dineroDisponible >= 0
-                            ? ColoresApp.primarioVerde
-                            : ColoresApp.gastoRojo,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Dinero disponible para gastar hoy:',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: ColoresApp.subtexto(context),
-                              ),
-                            ),
-                            Text(
-                              '\$${dineroDisponible.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: dineroDisponible >= 0
-                                    ? ColoresApp.primarioVerde
-                                    : ColoresApp.gastoRojo,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        size: 14,
-                        color: ColoresApp.subtexto(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Tarjeta principal de balance reactivo con el disponible real
-              BalanceCard(
-                saldoTotal: dineroDisponible,
-                ingresosMes: _totalIngresos,
-                gastosMes: _totalGastos,
-              ),
-              const SizedBox(height: 24),
-
-              // Botones de acciones rápidas
-              Text(
-                'Acciones Rápidas',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: ColoresApp.texto(context),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _BotonAccionRapidaItem(
-                      icono: Icons.add_rounded,
-                      etiqueta: 'Ingreso',
-                      colorFondo: ColoresApp.ingresoVerde,
-                      alPresionar: () =>
-                          _mostrarModalRegistro(context, TipoMovimiento.ingreso),
-                    ),
-                  ),
-                  Expanded(
-                    child: _BotonAccionRapidaItem(
-                      icono: Icons.remove_rounded,
-                      etiqueta: 'Gasto',
-                      colorFondo: ColoresApp.gastoRojo,
-                      alPresionar: () =>
-                          _mostrarModalRegistro(context, TipoMovimiento.gasto),
-                    ),
-                  ),
-                  Expanded(
-                    child: _BotonAccionRapidaItem(
-                      icono: Icons.credit_card_rounded,
-                      etiqueta: 'Tarjeta',
-                      colorFondo: Colors.purple,
-                      alPresionar: () =>
-                          _mostrarModalRegistro(context, TipoMovimiento.gasto),
-                    ),
-                  ),
-                  Expanded(
-                    child: _BotonAccionRapidaItem(
-                      icono: Icons.flag_rounded,
-                      etiqueta: 'Meta',
-                      colorFondo: ColoresApp.metaNaranja,
-                      alPresionar: alPulsarNuevaMeta ?? () {},
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-
-              // Encabezado responsivo de movimientos recientes
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Movimientos Recientes',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: ColoresApp.texto(context),
-                      ),
-                    ),
-                  ),
-                  TextButton(onPressed: () {}, child: const Text('Ver todos')),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Lista de movimientos recientes o estado vacío
-              if (listaMovimientos.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(32),
-                  alignment: Alignment.center,
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.inbox_outlined,
-                        size: 48,
-                        color: ColoresApp.subtexto(context),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Aún no hay movimientos registrados',
-                        style: TextStyle(color: ColoresApp.subtexto(context)),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: listaMovimientos.length,
-                  itemBuilder: (context, index) {
-                    final movimiento = listaMovimientos[index];
-                    return MovimientoItemTile(
-                      movimiento: movimiento,
-                      alPulsar: () {},
-                    );
-                  },
-                ),
-              // Espacio inferior para no tapar con el botón flotante y bottom app bar
-              const SizedBox(height: 70),
-            ],
+      appBar: AppBar(
+        title: Text(
+          'Mi Resumen Financiero',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: ColoresApp.texto(context),
           ),
         ),
+        backgroundColor: ColoresApp.fondo(context),
+        elevation: 0,
+        centerTitle: false,
+        leading: alAbrirMenuLateral != null
+            ? IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menú principal',
+                onPressed: alAbrirMenuLateral,
+              )
+            : null,
+        actions: const [
+          BotonModoOscuro(),
+        ],
       ),
-    );
-  }
-}
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ==========================================
+            // SECCION 1: GRAFICA DE DONA DE DISTRIBUCION DE GASTOS
+            // ==========================================
+            GraficaDonaCategoriasCard(
+              segmentos: _segmentosGastosPorCategoria,
+              totalGastos: _totalGastosGeneral,
+            ),
+            const SizedBox(height: 16),
 
-// ==========================================
-// SUBCOMPONENTE PRIVADO: BOTON DE ACCION RAPIDA
-// ==========================================
-class _BotonAccionRapidaItem extends StatelessWidget {
-  final IconData icono;
-  final String etiqueta;
-  final Color colorFondo;
-  final VoidCallback alPresionar;
+            // ==========================================
+            // SECCION 2: BALANCE DISPONIBLE & LIQUIDEZ
+            // ==========================================
+            BalanceCard(
+              saldoTotal: dineroDisponible,
+              ingresosMes: _totalIngresos,
+              gastosMes: _totalGastosGeneral,
+            ),
+            const SizedBox(height: 16),
 
-  const _BotonAccionRapidaItem({
-    required this.icono,
-    required this.etiqueta,
-    required this.colorFondo,
-    required this.alPresionar,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: alPresionar,
-      borderRadius: BorderRadius.circular(16),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: colorFondo.withValues(alpha: 0.12),
-            child: Icon(icono, color: colorFondo, size: 24),
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              etiqueta,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: ColoresApp.texto(context),
+            // ==========================================
+            // SECCION 3: CAPACIDAD DE GASTO & COMPROMISO
+            // ==========================================
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: ColoresApp.tarjeta(context),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
+                    ),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.speed_rounded,
+                        color: ColoresApp.primarioVerde,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Capacidad de Gasto & Compromiso',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: ColoresApp.texto(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${(porcentajeComprometido * 100).toStringAsFixed(0)}% ocupado',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: porcentajeComprometido > 0.85
+                                ? ColoresApp.gastoRojo
+                                : ColoresApp.primarioVerde,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: porcentajeComprometido,
+                      minHeight: 10,
+                      backgroundColor: ColoresApp.esOscuro(context)
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade200,
+                      color: porcentajeComprometido > 0.85
+                          ? ColoresApp.gastoRojo
+                          : (porcentajeComprometido > 0.65
+                                ? Colors.amber.shade700
+                                : ColoresApp.primarioVerde),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    porcentajeComprometido <= 0.65
+                        ? '🟢 Excelente: Tienes más del 35% de tus ingresos libres para imprevistos o ahorro.'
+                        : (porcentajeComprometido <= 0.85
+                              ? '🟡 Precaución: Has comprometido la mayor parte de tu liquidez este mes.'
+                              : '🔴 Límite crítico: Te queda muy poco margen antes de sobregirarte.'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: ColoresApp.subtexto(context),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+
+            // ==========================================
+            // SECCION 4: ULTIMOS MOVIMIENTOS RECIENTES
+            // ==========================================
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Movimientos Recientes',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: ColoresApp.texto(context),
+                    ),
+                  ),
+                ),
+                if (alPulsarVerTodosMovimientos != null)
+                  TextButton(
+                    onPressed: alPulsarVerTodosMovimientos,
+                    child: const Text('Ver todos'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Lista de movimientos recientes o estado vacío
+            if (listaMovimientos.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(32),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inbox_outlined,
+                      size: 48,
+                      color: ColoresApp.subtexto(context),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Aún no hay movimientos registrados',
+                      style: TextStyle(color: ColoresApp.subtexto(context)),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: listaMovimientos.length > 5 ? 5 : listaMovimientos.length,
+                itemBuilder: (context, index) {
+                  final movimiento = listaMovimientos[index];
+                  return MovimientoItemTile(
+                    movimiento: movimiento,
+                    alPulsar: () {},
+                  );
+                },
+              ),
+
+            // Espacio inferior para no tapar con el botón flotante y bottom app bar
+            const SizedBox(height: 90),
+          ],
+        ),
       ),
     );
   }

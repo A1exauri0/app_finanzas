@@ -9,11 +9,6 @@ import 'package:flutter/material.dart';
 import '../constantes/colores_app.dart';
 
 // ==========================================
-// IMPORTACIONES DE SERVICIOS
-// ==========================================
-import '../servicios/tema_servicio.dart';
-
-// ==========================================
 // IMPORTACIONES DE MODELOS
 // ==========================================
 import '../modelos/movimiento_modelo.dart';
@@ -25,7 +20,7 @@ import '../modelos/gasto_fijo_modelo.dart';
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/graficas/grafica_dona_categorias.dart';
-import '../componentes/graficas/grafica_barras_balance.dart';
+import '../componentes/comunes/boton_modo_oscuro.dart';
 
 // ==========================================
 // PANTALLA: PANEL DE FINANZAS Y GRAFICAS
@@ -35,6 +30,7 @@ class FinanzasScreen extends StatelessWidget {
   final List<DeudaModelo> listaDeudas;
   final List<MetaModelo> listaMetas;
   final List<GastoFijoModelo> listaGastosFijos;
+  final VoidCallback? alAbrirMenuLateral;
 
   const FinanzasScreen({
     super.key,
@@ -42,6 +38,7 @@ class FinanzasScreen extends StatelessWidget {
     required this.listaDeudas,
     required this.listaMetas,
     this.listaGastosFijos = const [],
+    this.alAbrirMenuLateral,
   });
 
   // Cálculos financieros
@@ -56,11 +53,6 @@ class FinanzasScreen extends StatelessWidget {
   // Gastos pagados en efectivo / débito (salida de efectivo real)
   double get _gastosEfectivoDebito => listaMovimientos
       .where((m) => m.tipo == TipoMovimiento.gasto && !m.pagadoConTarjeta)
-      .fold(0.0, (acum, m) => acum + m.monto);
-
-  // Gastos pagados con tarjeta de crédito (deuda diferida)
-  double get _gastosConTarjeta => listaMovimientos
-      .where((m) => m.tipo == TipoMovimiento.gasto && m.pagadoConTarjeta)
       .fold(0.0, (acum, m) => acum + m.monto);
 
   // Ahorro apartado en metas
@@ -88,16 +80,6 @@ class FinanzasScreen extends StatelessWidget {
 
     return _totalIngresos - _gastosEfectivoDebito - metasSinMovimiento;
   }
-
-  // Crédito total disponible en tarjetas
-  double get _creditoDisponibleTarjetas => listaDeudas
-      .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
-      .fold(0.0, (acum, d) => acum + d.creditoDisponible);
-
-  // Deuda total pendiente por pagar
-  double get _totalDeudaPendiente => listaDeudas
-      .where((d) => d.tipoDeuda != TipoDeuda.meDeben)
-      .fold(0.0, (acum, d) => acum + d.montoPendiente);
 
   // Agrupación de gastos por categoría para la gráfica de dona
   List<SegmentoCategoriaDona> get _segmentosGastosPorCategoria {
@@ -158,19 +140,15 @@ class FinanzasScreen extends StatelessWidget {
         ),
         backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
-        actions: [
-          IconButton(
-            tooltip: 'Alternar Modo Oscuro',
-            icon: Icon(
-              ColoresApp.esOscuro(context)
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
-              color: ColoresApp.esOscuro(context)
-                  ? Colors.amber
-                  : ColoresApp.texto(context),
-            ),
-            onPressed: () => TemaServicio.instancia.alternarTema(context),
-          ),
+        leading: alAbrirMenuLateral != null
+            ? IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menú principal',
+                onPressed: alAbrirMenuLateral,
+              )
+            : null,
+        actions: const [
+          BotonModoOscuro(),
         ],
       ),
       body: Center(
@@ -397,207 +375,11 @@ class FinanzasScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // ==========================================
-            // TARJETAS DE CREDITO VS DEUDA TOTAL
-            // ==========================================
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: ColoresApp.esOscuro(context)
-                          ? Colors.purple.shade900.withValues(alpha: 0.3)
-                          : Colors.purple.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: ColoresApp.esOscuro(context)
-                            ? Colors.purple.shade700
-                            : Colors.purple.shade200,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.credit_card_rounded,
-                              color: ColoresApp.esOscuro(context)
-                                  ? Colors.purple.shade300
-                                  : Colors.purple,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Crédito Libre',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: ColoresApp.esOscuro(context)
-                                    ? Colors.purple.shade300
-                                    : Colors.purple,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '\$${_creditoDisponibleTarjetas.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: ColoresApp.esOscuro(context)
-                                ? Colors.purple.shade200
-                                : Colors.purple,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Disponible en tarjetas',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: ColoresApp.subtexto(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: ColoresApp.esOscuro(context)
-                          ? Colors.orange.shade900.withValues(alpha: 0.3)
-                          : Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: ColoresApp.esOscuro(context)
-                            ? Colors.orange.shade700
-                            : Colors.orange.shade200,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.receipt_rounded,
-                              color: ColoresApp.esOscuro(context)
-                                  ? Colors.orange.shade300
-                                  : Colors.deepOrange,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Deuda Total',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: ColoresApp.esOscuro(context)
-                                    ? Colors.orange.shade300
-                                    : Colors.deepOrange,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '\$${_totalDeudaPendiente.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: ColoresApp.esOscuro(context)
-                                ? Colors.orange.shade200
-                                : Colors.deepOrange,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tarjetas y préstamos',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: ColoresApp.subtexto(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // ==========================================
             // GRAFICA DE DONA: GASTOS POR CATEGORIA
             // ==========================================
             GraficaDonaCategoriasCard(
               segmentos: _segmentosGastosPorCategoria,
               totalGastos: _totalGastosGeneral,
-            ),
-            const SizedBox(height: 16),
-
-            // ==========================================
-            // GRAFICA DE BARRAS: COMPARATIVA DE FLUJO
-            // ==========================================
-            GraficaBarrasBalanceCard(
-              totalIngresos: _totalIngresos,
-              totalGastos: _totalGastosGeneral,
-              totalAhorroMetas: _totalAhorradoMetas,
-            ),
-            const SizedBox(height: 16),
-
-            // ==========================================
-            // CONSEJOS Y DIAGNOSTICO INTELIGENTE
-            // ==========================================
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: ColoresApp.tarjeta(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.03,
-                    ),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.lightbulb_rounded, color: Colors.amber),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Recomendaciones del Asesor',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresApp.texto(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _ItemConsejo(
-                    texto: _gastosConTarjeta > 0
-                        ? 'Has gastado \$${_gastosConTarjeta.toStringAsFixed(2)} a crédito. Recuerda apartar ese dinero antes de tu fecha límite para evitar intereses.'
-                        : 'No tienes cargos pendientes de tarjeta generados recientemente.',
-                  ),
-                  const SizedBox(height: 8),
-                  _ItemConsejo(
-                    texto: _dineroDisponibleReal < 1000
-                        ? 'Tu reserva líquida es menor a \$1,000. Prioriza frenar gastos no esenciales hasta tu próximo ingreso.'
-                        : 'Tu fondo disponible está en buen nivel. Considera destinar un porcentaje extra a tus metas de ahorro.',
-                  ),
-                ],
-              ),
             ),
           ],
         ),
@@ -637,36 +419,6 @@ class _ElementoDesgloseBlanco extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ==========================================
-// SUBCOMPONENTE PRIVADO: ITEM DE CONSEJO
-// ==========================================
-class _ItemConsejo extends StatelessWidget {
-  final String texto;
-
-  const _ItemConsejo({required this.texto});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(
-          Icons.check_circle_outline_rounded,
-          size: 16,
-          color: ColoresApp.primarioVerde,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            texto,
-            style: TextStyle(fontSize: 13, color: ColoresApp.texto(context)),
           ),
         ),
       ],

@@ -20,6 +20,7 @@ import '../modelos/deuda_modelo.dart';
 import '../componentes/cards/movimiento_item_tile.dart';
 import '../componentes/modales/detalle_movimiento_modal.dart';
 import '../componentes/modales/editar_movimiento_modal.dart';
+import '../componentes/comunes/boton_modo_oscuro.dart';
 
 
 // ==========================================
@@ -41,6 +42,7 @@ class MovimientosScreen extends StatefulWidget {
   final Function(String idMovimiento) alEliminarMovimiento;
   final Function(MovimientoModelo movimientoActualizado) alActualizarMovimiento;
   final VoidCallback? alPulsarNuevoMovimiento;
+  final VoidCallback? alAbrirMenuLateral;
 
   const MovimientosScreen({
     super.key,
@@ -49,6 +51,7 @@ class MovimientosScreen extends StatefulWidget {
     required this.alEliminarMovimiento,
     required this.alActualizarMovimiento,
     this.alPulsarNuevoMovimiento,
+    this.alAbrirMenuLateral,
   });
 
   @override
@@ -248,6 +251,16 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
         backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
         centerTitle: false,
+        leading: widget.alAbrirMenuLateral != null
+            ? IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menú principal',
+                onPressed: widget.alAbrirMenuLateral,
+              )
+            : null,
+        actions: const [
+          BotonModoOscuro(),
+        ],
       ),
       body: Column(
         children: [

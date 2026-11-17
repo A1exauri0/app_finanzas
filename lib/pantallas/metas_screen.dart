@@ -18,6 +18,7 @@ import '../modelos/meta_modelo.dart';
 // ==========================================
 import '../componentes/cards/meta_progreso_card.dart';
 import '../componentes/modales/nueva_meta_modal.dart';
+import '../componentes/comunes/boton_modo_oscuro.dart';
 
 
 // ==========================================
@@ -30,6 +31,7 @@ class MetasScreen extends StatefulWidget {
   final Function(String idMeta) alEliminarMeta;
   final Function(String idMeta, double montoAbono) alAbonarMeta;
   final Function(String idMeta, double montoRetiro) alRetirarMeta;
+  final VoidCallback? alAbrirMenuLateral;
 
   const MetasScreen({
     super.key,
@@ -39,6 +41,7 @@ class MetasScreen extends StatefulWidget {
     required this.alEliminarMeta,
     required this.alAbonarMeta,
     required this.alRetirarMeta,
+    this.alAbrirMenuLateral,
   });
 
   @override
@@ -292,6 +295,16 @@ class _MetasScreenState extends State<MetasScreen> {
         ),
         backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
+        leading: widget.alAbrirMenuLateral != null
+            ? IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menú principal',
+                onPressed: widget.alAbrirMenuLateral,
+              )
+            : null,
+        actions: const [
+          BotonModoOscuro(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 90),

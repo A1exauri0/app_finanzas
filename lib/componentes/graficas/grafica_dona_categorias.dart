@@ -96,16 +96,16 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Gráfica de dona con valor central
+          // Gráfica de dona con valor central (anillo y barritas más anchas)
           Center(
             child: SizedBox(
-              width: 170,
-              height: 170,
+              width: 190,
+              height: 190,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   CustomPaint(
-                    size: const Size(170, 170),
+                    size: const Size(190, 190),
                     painter: _PintorDonaCategorias(
                       segmentos: segmentos,
                       total: totalGastos,
@@ -128,7 +128,7 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
                         child: Text(
                           '\$${totalGastos.toStringAsFixed(0)}',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: ColoresApp.gastoRojo,
                           ),
@@ -142,46 +142,65 @@ class GraficaDonaCategoriasCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Leyenda de categorías con porcentajes
+          // Leyenda de categorías con barritas de progreso y porcentajes
           Column(
             children: segmentos.map((seg) {
-              final double porcentaje = (seg.monto / totalGastos) * 100;
+              final double proporcion = (seg.monto / totalGastos).clamp(0.0, 1.0);
+              final double porcentaje = proporcion * 100;
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: seg.color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        seg.nombre,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: ColoresApp.texto(context),
+                    Row(
+                      children: [
+                        Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: seg.color,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(seg.icono, size: 9, color: Colors.white),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            seg.nombre,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: ColoresApp.texto(context),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${porcentaje.toStringAsFixed(1)}% ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: ColoresApp.subtexto(context),
+                          ),
+                        ),
+                        Text(
+                          '\$${seg.monto.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: ColoresApp.texto(context),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${porcentaje.toStringAsFixed(1)}% ',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: ColoresApp.subtexto(context),
-                      ),
-                    ),
-                    Text(
-                      '\$${seg.monto.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: ColoresApp.texto(context),
+                    const SizedBox(height: 5),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: proporcion,
+                        minHeight: 6,
+                        backgroundColor: ColoresApp.esOscuro(context)
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade200,
+                        color: seg.color,
                       ),
                     ),
                   ],
@@ -212,8 +231,9 @@ class _PintorDonaCategorias extends CustomPainter {
     if (total <= 0) return;
 
     final centro = Offset(size.width / 2, size.height / 2);
-    final radio = (size.width / 2) - 10;
-    const grosor = 18.0;
+    // Grosor aumentado para barritas más anchas y prominentes
+    const grosor = 32.0;
+    final radio = (size.width / 2) - (grosor / 2);
 
     double anguloInicio = -math.pi / 2; // Comenzar en la parte superior (12 en punto)
 
@@ -227,8 +247,8 @@ class _PintorDonaCategorias extends CustomPainter {
         ..strokeWidth = grosor
         ..strokeCap = StrokeCap.round;
 
-      // Dejamos un margen minúsculo entre segmentos si hay más de 1
-      final double anguloSeparacion = segmentos.length > 1 ? 0.04 : 0.0;
+      // Margen entre segmentos si hay más de 1
+      final double anguloSeparacion = segmentos.length > 1 ? 0.05 : 0.0;
       final double anguloEfectivo = math.max(0.01, anguloBarrido - anguloSeparacion);
 
       canvas.drawArc(

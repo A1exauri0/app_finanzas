@@ -13,131 +13,91 @@ import '../../constantes/colores_app.dart';
 // ==========================================
 import '../../servicios/tema_servicio.dart';
 
-
 // ==========================================
 // COMPONENTE VISUAL: MENU LATERAL (DRAWER)
 // ==========================================
 class MenuLateralDrawer extends StatelessWidget {
-  final double dineroDisponible;
+  final double? dineroDisponible;
   final int indicePestanaActual;
   final Function(int) alSeleccionarPestana;
-  final VoidCallback alAbrirPanelFinanzas;
+  final VoidCallback? alAbrirPanelFinanzas;
   final VoidCallback alRegistrarMovimiento;
 
   const MenuLateralDrawer({
     super.key,
-    required this.dineroDisponible,
+    this.dineroDisponible,
     required this.indicePestanaActual,
     required this.alSeleccionarPestana,
-    required this.alAbrirPanelFinanzas,
+    this.alAbrirPanelFinanzas,
     required this.alRegistrarMovimiento,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool saldoPositivo = dineroDisponible > 0;
-
     return Drawer(
       backgroundColor: ColoresApp.tarjeta(context),
       child: Column(
         children: [
-          // Encabezado del menú
-          Container(
-            padding: const EdgeInsets.only(top: 50, bottom: 20, left: 20, right: 20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: saldoPositivo
-                    ? [const Color(0xFF004D40), ColoresApp.primarioVerde]
-                    : [const Color(0xFFB71C1C), ColoresApp.gastoRojo],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CircleAvatar(
-                  radius: 26,
-                  backgroundColor: Colors.white24,
-                  child: Icon(Icons.wallet_rounded, color: Colors.white, size: 28),
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'Dinero Disponible',
-                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '\$${dineroDisponible.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
+          // ==========================================
+          // ENCABEZADO MINIMALISTA DE LA APLICACION
+          // ==========================================
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16, bottom: 16, left: 20, right: 20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: ColoresApp.primarioVerde.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: ColoresApp.primarioVerde,
+                      size: 26,
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  saldoPositivo ? '✓ Liquidez disponible libre' : '⚠️ Fondos agotados / sobregiro',
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
-                ),
-              ],
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'App Finanzas',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: ColoresApp.texto(context),
+                          ),
+                        ),
+                        Text(
+                          'Control & Finanzas Personales',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: ColoresApp.subtexto(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-
-          // Elemento Destacado: Panel Financiero y Gráficas
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: ColoresApp.primarioVerde.withValues(
-                alpha: ColoresApp.esOscuro(context) ? 0.2 : 0.1,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: ColoresApp.primarioVerde.withValues(
-                  alpha: ColoresApp.esOscuro(context) ? 0.4 : 0.3,
-                ),
-              ),
-            ),
-            child: ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: ColoresApp.primarioVerde,
-                radius: 18,
-                child: Icon(Icons.pie_chart_rounded, color: Colors.white, size: 20),
-              ),
-              title: Text(
-                'Panel Financiero & Gráficas',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: ColoresApp.texto(context),
-                ),
-              ),
-              subtitle: Text(
-                'Gráficas de dona, barras y salud',
-                style: TextStyle(fontSize: 11, color: ColoresApp.subtexto(context)),
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded, color: ColoresApp.primarioVerde),
-              onTap: () {
-                Navigator.pop(context);
-                alAbrirPanelFinanzas();
-              },
-            ),
-          ),
-
           const Divider(height: 1),
 
-          // Opciones de navegación
+          // ==========================================
+          // OPCIONES DE NAVEGACION PRINCIPAL
+          // ==========================================
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               children: [
                 _ItemMenuLateral(
                   icono: Icons.home_rounded,
-                  titulo: 'Inicio & Resumen',
+                  titulo: 'Inicio & Gráficas',
                   estaSeleccionado: indicePestanaActual == 0,
                   alPulsar: () {
                     Navigator.pop(context);
@@ -213,7 +173,9 @@ class MenuLateralDrawer extends StatelessWidget {
             ),
           ),
 
-          // Botón inferior para registro rápido
+          // ==========================================
+          // BOTON RAPIDO INFERIOR PARA REGISTRO
+          // ==========================================
           Padding(
             padding: const EdgeInsets.all(16),
             child: FilledButton.icon(

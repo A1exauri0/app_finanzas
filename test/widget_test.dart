@@ -12,6 +12,7 @@ import 'package:app_finanzas/main.dart';
 import 'package:app_finanzas/servicios/base_datos_servicio.dart';
 import 'package:app_finanzas/servicios/tema_servicio.dart';
 import 'package:app_finanzas/componentes/graficas/grafica_dona_categorias.dart';
+import 'package:app_finanzas/componentes/comunes/boton_modo_oscuro.dart';
 
 
 
@@ -33,23 +34,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mi Resumen Financiero'), findsOneWidget);
-    expect(find.textContaining('Dinero disponible'), findsOneWidget);
+    expect(find.text('Balance Disponible'), findsOneWidget);
     expect(find.text('Aún no hay movimientos registrados'), findsOneWidget);
+    // Verifica que se eliminó la sección de Acciones Rápidas
+    expect(find.text('Acciones Rápidas'), findsNothing);
+    // Verifica presencia del botón global de modo oscuro en el AppBar
+    expect(find.byType(BotonModoOscuro), findsOneWidget);
   });
 
-  testWidgets('Verifica navegación al Panel de Finanzas y Gráficas', (WidgetTester tester) async {
+  testWidgets('Verifica que las gráficas y análisis financiero se muestren directamente en Inicio', (WidgetTester tester) async {
     await tester.pumpWidget(const AppFinanzas());
     await tester.pumpAndSettle();
 
-    final botonGraficas = find.text('Gráficas');
-    expect(botonGraficas, findsOneWidget);
-    await tester.tap(botonGraficas);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Análisis Financiero & Gráficas'), findsOneWidget);
-    expect(find.text('DINERO DISPONIBLE HOY'), findsOneWidget);
+    expect(find.text('Capacidad de Gasto & Compromiso'), findsOneWidget);
     expect(find.text('No hay gastos registrados para graficar.'), findsOneWidget);
-    expect(find.text('Comparativa de Flujo de Dinero'), findsOneWidget);
+    // Verifica que se removieron las cards de comparativa y recomendaciones
+    expect(find.text('Comparativa de Flujo de Dinero'), findsNothing);
+    expect(find.text('Recomendaciones del Asesor'), findsNothing);
   });
 
   testWidgets('Verifica alerta de sobregiro al intentar gastar más de lo disponible', (WidgetTester tester) async {

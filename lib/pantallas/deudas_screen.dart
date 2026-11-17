@@ -20,6 +20,7 @@ import '../modelos/gasto_fijo_modelo.dart';
 import '../componentes/cards/gastos_fijos_resumen_card.dart';
 import '../componentes/modales/editar_tarjeta_modal.dart';
 import '../componentes/modales/editar_deuda_persona_modal.dart';
+import '../componentes/comunes/boton_modo_oscuro.dart';
 
 // ==========================================
 // PANTALLA: CONTROL DE DEUDAS Y TARJETAS
@@ -40,6 +41,7 @@ class DeudasScreen extends StatefulWidget {
   final Function(GastoFijoModelo) alEditarGastoFijo;
   final Function(GastoFijoModelo) alEliminarGastoFijo;
   final Function(int)? alCambiarSubPestana;
+  final VoidCallback? alAbrirMenuLateral;
 
   const DeudasScreen({
     super.key,
@@ -57,6 +59,7 @@ class DeudasScreen extends StatefulWidget {
     required this.alEditarGastoFijo,
     required this.alEliminarGastoFijo,
     this.alCambiarSubPestana,
+    this.alAbrirMenuLateral,
   });
 
   @override
@@ -465,6 +468,16 @@ class _DeudasScreenState extends State<DeudasScreen>
         ),
         backgroundColor: ColoresApp.fondo(context),
         elevation: 0,
+        leading: widget.alAbrirMenuLateral != null
+            ? IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menú principal',
+                onPressed: widget.alAbrirMenuLateral,
+              )
+            : null,
+        actions: const [
+          BotonModoOscuro(),
+        ],
         bottom: TabBar(
           controller: _tabControlador,
           isScrollable: true,
