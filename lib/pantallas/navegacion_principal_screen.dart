@@ -83,7 +83,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
       if (mounted) {
         setState(() {
           _listaMovimientos = movimientos;
-          _listaDeudas = deudas;
+          _listaDeudas = deudas.reversed.toList();
           _listaMetas = metas;
           _listaGastosFijos = gastosFijos;
         });
@@ -391,7 +391,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
   // Registrar una nueva deuda o tarjeta
   void _agregarDeuda(DeudaModelo nuevaDeuda) {
     setState(() {
-      _listaDeudas.add(nuevaDeuda);
+      _listaDeudas.insert(0, nuevaDeuda);
 
       // Si presté dinero a alguien (Me Deben), sale de mi efectivo disponible
       if (nuevaDeuda.tipoDeuda == TipoDeuda.meDeben &&

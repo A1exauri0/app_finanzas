@@ -442,15 +442,28 @@ class _DeudasScreenState extends State<DeudasScreen>
 
   @override
   Widget build(BuildContext context) {
-    final List<DeudaModelo> tarjetas = widget.listaDeudas
-        .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
-        .toList();
-    final List<DeudaModelo> meDeben = widget.listaDeudas
-        .where((d) => d.tipoDeuda == TipoDeuda.meDeben)
-        .toList();
-    final List<DeudaModelo> debo = widget.listaDeudas
-        .where((d) => d.tipoDeuda == TipoDeuda.debo)
-        .toList();
+    // Ordenar deudas: no saldadas primero (más recientes arriba), saldadas al fondo
+    List<DeudaModelo> ordenarDeudas(List<DeudaModelo> items) {
+      final pendientes = items.where((d) => !d.estaSaldada).toList();
+      final saldadas = items.where((d) => d.estaSaldada).toList();
+      return [...pendientes, ...saldadas];
+    }
+
+    final List<DeudaModelo> tarjetas = ordenarDeudas(
+      widget.listaDeudas
+          .where((d) => d.tipoDeuda == TipoDeuda.tarjetaCredito)
+          .toList(),
+    );
+    final List<DeudaModelo> meDeben = ordenarDeudas(
+      widget.listaDeudas
+          .where((d) => d.tipoDeuda == TipoDeuda.meDeben)
+          .toList(),
+    );
+    final List<DeudaModelo> debo = ordenarDeudas(
+      widget.listaDeudas
+          .where((d) => d.tipoDeuda == TipoDeuda.debo)
+          .toList(),
+    );
 
     return Scaffold(
       backgroundColor: ColoresApp.fondo(context),
@@ -632,11 +645,16 @@ class _ListaTarjetasVista extends StatelessWidget {
                             tarjeta.tituloOEntidad,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
+                              decoration: tarjeta.estaSaldada
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                              decorationColor: Colors.white70,
+                              decorationThickness: 2,
                             ),
                           ),
                         ),
@@ -941,11 +959,24 @@ class _ListaDeudasVista extends StatelessWidget {
       itemBuilder: (context, index) {
         final deuda = lista[index];
         final bool esMeDeben = tipo == TipoDeuda.meDeben;
+        final bool saldada = deuda.estaSaldada;
 
         return Card(
-          elevation: 1,
+          elevation: saldada ? 0 : 1,
+          color: saldada
+              ? (ColoresApp.esOscuro(context)
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : Colors.grey.shade100)
+              : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
+            side: saldada
+                ? BorderSide(
+                    color: ColoresApp.esOscuro(context)
+                        ? Colors.white12
+                        : Colors.grey.shade300,
+                  )
+                : BorderSide.none,
           ),
           margin: const EdgeInsets.symmetric(vertical: 8),
           child: Padding(
@@ -961,16 +992,22 @@ class _ListaDeudasVista extends StatelessWidget {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: esMeDeben
-                                ? Colors.green.shade50
-                                : Colors.red.shade50,
+                            backgroundColor: saldada
+                                ? Colors.grey.shade200
+                                : (esMeDeben
+                                    ? Colors.green.shade50
+                                    : Colors.red.shade50),
                             child: Icon(
-                              esMeDeben
-                                  ? Icons.person_pin_rounded
-                                  : Icons.account_balance_rounded,
-                              color: esMeDeben
-                                  ? ColoresApp.ingresoVerde
-                                  : ColoresApp.gastoRojo,
+                              saldada
+                                  ? Icons.check_circle_rounded
+                                  : (esMeDeben
+                                      ? Icons.person_pin_rounded
+                                      : Icons.account_balance_rounded),
+                              color: saldada
+                                  ? Colors.grey.shade600
+                                  : (esMeDeben
+                                      ? ColoresApp.ingresoVerde
+                                      : ColoresApp.gastoRojo),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -978,15 +1015,49 @@ class _ListaDeudasVista extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  deuda.tituloOEntidad,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: ColoresApp.texto(context),
-                                  ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        deuda.tituloOEntidad,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: saldada
+                                              ? ColoresApp.subtexto(context)
+                                              : ColoresApp.texto(context),
+                                          decoration: saldada
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none,
+                                          decorationColor: ColoresApp.subtexto(context),
+                                          decorationThickness: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    if (saldada) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'PAGADO',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 if (deuda.historialPartidas.isNotEmpty)
                                   Text(
@@ -996,6 +1067,9 @@ class _ListaDeudasVista extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: ColoresApp.subtexto(context),
+                                      decoration: saldada
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
                                     ),
                                   ),
                               ],
@@ -1079,9 +1153,11 @@ class _ListaDeudasVista extends StatelessWidget {
                 LinearProgressIndicator(
                   value: deuda.porcentajePagado,
                   backgroundColor: Colors.grey.shade200,
-                  color: esMeDeben
-                      ? ColoresApp.ingresoVerde
-                      : ColoresApp.gastoRojo,
+                  color: saldada
+                      ? Colors.green
+                      : (esMeDeben
+                          ? ColoresApp.ingresoVerde
+                          : ColoresApp.gastoRojo),
                   borderRadius: BorderRadius.circular(8),
                   minHeight: 7,
                 ),
@@ -1108,7 +1184,14 @@ class _ListaDeudasVista extends StatelessWidget {
                               '\$${deuda.montoTotal.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: ColoresApp.texto(context),
+                                color: saldada
+                                    ? ColoresApp.subtexto(context)
+                                    : ColoresApp.texto(context),
+                                decoration: saldada
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
+                                decorationColor: ColoresApp.subtexto(context),
+                                decorationThickness: 2,
                               ),
                             ),
                           ),
@@ -1131,12 +1214,14 @@ class _ListaDeudasVista extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerRight,
                             child: Text(
-                              '\$${deuda.montoPendiente.toStringAsFixed(2)}',
+                              saldada
+                                  ? 'Saldado (\$0.00)'
+                                  : '\$${deuda.montoPendiente.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: deuda.estaSaldada
-                                    ? ColoresApp.ingresoVerde
+                                color: saldada
+                                    ? Colors.green
                                     : (esMeDeben
                                           ? Colors.amber.shade900
                                           : ColoresApp.gastoRojo),

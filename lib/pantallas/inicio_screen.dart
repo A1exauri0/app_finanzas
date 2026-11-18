@@ -71,9 +71,25 @@ class InicioScreen extends StatelessWidget {
     (acum, meta) => acum + meta.montoAhorrado,
   );
 
-  // Segmentos para la gráfica de dona interactiva
+  // Identifica si un movimiento corresponde a transferencias hacia ahorros o metas
+  bool _esGastoDeAhorro(MovimientoModelo m) {
+    final cat = m.categoria.toLowerCase();
+    final tit = m.titulo.toLowerCase();
+    return cat.contains('ahorro') ||
+        cat.contains('meta') ||
+        tit.startsWith('ahorro para');
+  }
+
+  // Total de gastos reales excluyendo ahorros para la gráfica
+  double get _totalGastosExcluyendoAhorros => listaMovimientos
+      .where((m) => m.tipo == TipoMovimiento.gasto && !_esGastoDeAhorro(m))
+      .fold(0.0, (acum, m) => acum + m.monto);
+
+  // Segmentos para la gráfica de dona interactiva (excluye ahorros)
   List<SegmentoCategoriaDona> get _segmentosGastosPorCategoria {
-    final gastos = listaMovimientos.where((m) => m.tipo == TipoMovimiento.gasto);
+    final gastos = listaMovimientos.where(
+      (m) => m.tipo == TipoMovimiento.gasto && !_esGastoDeAhorro(m),
+    );
     final Map<String, double> agrupados = {};
     final Map<String, IconData> iconos = {};
 
@@ -149,7 +165,7 @@ class InicioScreen extends StatelessWidget {
             // ==========================================
             GraficaDonaCategoriasCard(
               segmentos: _segmentosGastosPorCategoria,
-              totalGastos: _totalGastosGeneral,
+              totalGastos: _totalGastosExcluyendoAhorros,
             ),
             const SizedBox(height: 16),
 
