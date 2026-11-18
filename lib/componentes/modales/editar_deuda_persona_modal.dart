@@ -93,15 +93,12 @@ class _EditarDeudaPersonaModalState extends State<EditarDeudaPersonaModal> {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 620,
-          maxHeight: MediaQuery.of(context).size.height * 0.88,
+          maxHeight: (MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).viewInsets.bottom) *
+              0.88,
         ),
         child: Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           child: Form(
             key: _formularioClave,
             child: SingleChildScrollView(

@@ -47,8 +47,11 @@ class MovimientoItemTile extends StatelessWidget {
           ),
         ],
       ),
-      child: ListTile(
-        onTap: alPulsar,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: ListTile(
+          onTap: alPulsar,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         leading: CircleAvatar(
           radius: 22,
@@ -134,6 +137,7 @@ class MovimientoItemTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -195,27 +195,29 @@ class _DeudasScreenState extends State<DeudasScreen>
                     ? 'Registrar Cobro a ${deuda.tituloOEntidad}'
                     : 'Pagar a ${deuda.tituloOEntidad}'),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Saldo actual pendiente: \$${deuda.montoPendiente.toStringAsFixed(2)}',
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: abonoControlador,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Saldo actual pendiente: \$${deuda.montoPendiente.toStringAsFixed(2)}',
               ),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Monto a pagar o abonar (\$)',
-                prefixIcon: Icon(Icons.attach_money_rounded),
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: abonoControlador,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Monto a pagar o abonar (\$)',
+                  prefixIcon: Icon(Icons.attach_money_rounded),
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

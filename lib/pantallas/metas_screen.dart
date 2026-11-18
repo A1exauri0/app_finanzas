@@ -125,24 +125,26 @@ class _MetasScreenState extends State<MetasScreen> {
             Expanded(child: Text('Abonar a "${meta.titulo}"')),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ahorrado actualmente: \$${meta.montoAhorrado.toStringAsFixed(2)}'),
-            Text('Monto objetivo: \$${meta.montoObjetivo.toStringAsFixed(2)}'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: abonoControlador,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Monto a abonar (\$)',
-                prefixIcon: Icon(Icons.attach_money_rounded),
-                border: OutlineInputBorder(),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ahorrado actualmente: \$${meta.montoAhorrado.toStringAsFixed(2)}'),
+              Text('Monto objetivo: \$${meta.montoObjetivo.toStringAsFixed(2)}'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: abonoControlador,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Monto a abonar (\$)',
+                  prefixIcon: Icon(Icons.attach_money_rounded),
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -198,36 +200,38 @@ class _MetasScreenState extends State<MetasScreen> {
                 Expanded(child: Text('Retirar de "${meta.titulo}"')),
               ],
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Ahorrado actualmente: \$${meta.montoAhorrado.toStringAsFixed(2)}'),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: retiroControlador,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: 'Monto a retirar (\$)',
-                    prefixIcon: const Icon(Icons.attach_money_rounded),
-                    border: const OutlineInputBorder(),
-                    errorText: errorTexto,
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Ahorrado actualmente: \$${meta.montoAhorrado.toStringAsFixed(2)}'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: retiroControlador,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Monto a retirar (\$)',
+                      prefixIcon: const Icon(Icons.attach_money_rounded),
+                      border: const OutlineInputBorder(),
+                      errorText: errorTexto,
+                    ),
+                    onChanged: (val) {
+                      final double? monto = double.tryParse(val.replaceAll(',', ''));
+                      if (monto != null && monto > meta.montoAhorrado) {
+                        setStateModal(() {
+                          errorTexto = 'No puedes retirar más de \$${meta.montoAhorrado.toStringAsFixed(2)}';
+                        });
+                      } else if (errorTexto != null) {
+                        setStateModal(() {
+                          errorTexto = null;
+                        });
+                      }
+                    },
                   ),
-                  onChanged: (val) {
-                    final double? monto = double.tryParse(val.replaceAll(',', ''));
-                    if (monto != null && monto > meta.montoAhorrado) {
-                      setStateModal(() {
-                        errorTexto = 'No puedes retirar más de \$${meta.montoAhorrado.toStringAsFixed(2)}';
-                      });
-                    } else if (errorTexto != null) {
-                      setStateModal(() {
-                        errorTexto = null;
-                      });
-                    }
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(

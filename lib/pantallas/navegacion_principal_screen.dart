@@ -862,6 +862,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
+      resizeToAvoidBottomInset: false,
       backgroundColor: ColoresApp.fondo(context),
       drawer: MenuLateralDrawer(
         dineroDisponible: _dineroDisponibleReal,
