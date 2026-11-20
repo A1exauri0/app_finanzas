@@ -20,6 +20,7 @@ import '../modelos/gasto_fijo_modelo.dart';
 // IMPORTACIONES DE COMPONENTES WIDGETS
 // ==========================================
 import '../componentes/cards/balance_card.dart';
+import '../componentes/cards/distribucion_presupuesto_card.dart';
 import '../componentes/cards/movimiento_item_tile.dart';
 import '../componentes/graficas/grafica_dona_categorias.dart';
 import '../componentes/comunes/boton_modo_oscuro.dart';
@@ -37,6 +38,7 @@ class InicioScreen extends StatelessWidget {
   final VoidCallback? alPulsarNuevaMeta;
   final VoidCallback? alAbrirMenuLateral;
   final VoidCallback? alPulsarVerTodosMovimientos;
+  final VoidCallback? alPulsarNuevoMovimiento;
 
   const InicioScreen({
     super.key,
@@ -49,6 +51,7 @@ class InicioScreen extends StatelessWidget {
     this.alPulsarNuevaMeta,
     this.alAbrirMenuLateral,
     this.alPulsarVerTodosMovimientos,
+    this.alPulsarNuevoMovimiento,
   });
 
   // ==========================================
@@ -176,6 +179,18 @@ class InicioScreen extends StatelessWidget {
               saldoTotal: dineroDisponible,
               ingresosMes: _totalIngresos,
               gastosMes: _totalGastosGeneral,
+            ),
+            const SizedBox(height: 16),
+
+            // ==========================================
+            // SECCION 2.1: DISTRIBUCION DE PRESUPUESTO 50/20/30 INTELIGENTE
+            // ==========================================
+            DistribucionPresupuestoCard(
+              listaMovimientos: listaMovimientos,
+              listaDeudas: listaDeudas,
+              listaMetas: listaMetas,
+              listaGastosFijos: listaGastosFijos,
+              alPulsarRegistrarIngreso: alPulsarNuevoMovimiento,
             ),
             const SizedBox(height: 16),
 

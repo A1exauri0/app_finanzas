@@ -47,6 +47,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Capacidad de Gasto & Compromiso'), findsOneWidget);
+    expect(find.text('Presupuesto 50 / 20 / 30'), findsOneWidget);
     expect(find.text('No hay gastos registrados para graficar.'), findsOneWidget);
     // Verifica que se removieron las cards de comparativa y recomendaciones
     expect(find.text('Comparativa de Flujo de Dinero'), findsNothing);

@@ -822,6 +822,7 @@ class _NavegacionPrincipalScreenState extends State<NavegacionPrincipalScreen> {
         alPulsarNuevaMeta: _abrirModalNuevaMeta,
         alAbrirMenuLateral: () => _scaffoldKey.currentState?.openDrawer(),
         alPulsarVerTodosMovimientos: () => setState(() => _indicePestanaActual = 1),
+        alPulsarNuevoMovimiento: _abrirModalRegistroCentral,
       ),
       MovimientosScreen(
         listaMovimientos: _listaMovimientos,
